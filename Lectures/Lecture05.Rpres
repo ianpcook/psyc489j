@@ -1,0 +1,249 @@
+<script type="text/javascript"
+       src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+ });
+</script>
+
+Linear regression: before and after fitting
+========================================================
+author: Jeffrey Chrabaszcz
+date: 8 January 2014
+transition: none
+width: 1024
+height: 760
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+require(ggplot2)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================
+
+1. Dummy coding
+2. Linear transformations
+3. Centering and standardizing
+4. Correlation & "regression to the mean"
+5. Logarithmic transformations
+6. Discretizing continuous data
+7. Building models for prediction
+8. A quick note on time-series analyses
+
+Dummy coding
+========================================================
+
+Using categorical predictors in linear models can be confusing.
+This is because for each categorical input, we actually add the number of levels - 1 new parameters to the model.
+
+x1 | x11 | x12 | x13
+---|-----|-----|-----
+1  | 0   | 0   | 0
+2  | 1   | 0   | 0
+3  | 0   | 1   | 0
+4  | 0   | 0   | 1
+
+This particular scheme, treatment coding, is the R default and only one we'll be discussing.
+
+========================================================
+
+```{r insect_setup,echo=FALSE}
+data(InsectSprays)
+lm1 <- lm(count ~ spray, data = InsectSprays)
+InsectSprays$spray <- relevel(InsectSprays$spray, ref = "C")
+lm2 <- lm(count ~ spray, data = InsectSprays)
+```
+
+<pre><code style="font-size:20pt">
+```{r model_1,echo=FALSE,results='asis'}
+summary(lm1)
+```
+</code></pre>
+
+========================================================
+
+<pre><code style="font-size:20pt">
+```{r model_2,echo=FALSE,results='asis'}
+summary(lm2)
+```
+</code></pre>
+
+Insect graph
+========================================================
+
+```{r insect_graph}
+ggplot(InsectSprays, aes(spray, count)) + geom_boxplot() + theme_grey(base_size = 24)
+```
+
+Linear transformation
+========================================================
+
+Linear transformations have no effect on model fit, but can improve interpretability of the model.
+
+* add a constant
+* multiply by a constant
+* both!
+
+This is because Any of these operations maintain the ratio between points.
+
+Levels of measurement (Stevens, 1946)
+========================================================
+
+1. Nominal
+2. Ordinal
+3. Interval
+4. Ratio
+
+Everything we do relies heavily on the ratio scale, if not the interval.
+Cliff (1994) and Dougherty & Thomas (2012) are good references for people working on ordinal things.
+
+Common transformations
+========================================================
+left: 50%
+
+mean centering
+-----
+
+* subtract mean(x) from each value of x
+* intercept term now meaningful
+* use when the units of your outcome are meaningful
+
+
+***
+
+z transformation
+-----
+
+$$
+z_x = \frac{x_i - \bar{x}}{\sigma_x}
+$$
+
+* 0 point is now the mean of x
+* unit change corresponds to a one standard deviation change
+
+========================================================
+
+```{r load_data_1 ,echo=FALSE}
+library(foreign)
+library(arm)
+df <- read.dta("data/kidiq.dta")
+df$c.mom.iq <- scale(df$mom_iq)
+```
+
+```{r no_center,echo=FALSE}
+display(my.lm <- lm(kid_score ~ mom_hs * mom_iq, data = df))
+```
+
+```{r center,echo=FALSE}
+display(my.lm <- lm(kid_score ~ mom_hs * c.mom.iq, data = df))
+```
+
+Correlation and "regression to the mean"
+========================================================
+
+```{r reg_pca,echo=FALSE,fig.height=9,fig.width=18}
+df <- data.frame(x = rnorm(1000))
+df$y <- as.vector(scale(df$x + rnorm(1000)))
+lm1 <- lm(y ~ x, data = df)
+df.2 <- data.frame(int = c(coef(lm1)[1], 0), slo = c(coef(lm1)[2], 1), met = c("reg", "pca"))
+ggplot(df, aes(x,y)) + geom_point() + geom_abline(data = df.2, aes(intercept = int, slope = slo), color = "firebrick", size = 1.5) + facet_wrap(~met) + theme_grey(base_size = 24)
+```
+
+Logarithmic function
+========================================================
+
+$$
+log(a \cdot b) = log(a) + log(b)
+$$
+
+```{r log_func_plot,echo=FALSE}
+df <- data.frame(x = seq(.001, 20, by = .001))
+df$y <- log(df$x)
+qplot(x, y, data = df, geom = "line", group = 1) + ylab("log(x)") + theme_bw(base_size = 24) + ylim(c(-7, 4))
+```
+
+Logarithmic tranformations
+========================================================
+
+* Proportional change
+* only works for all values > 0
+
+```{r log_plot,echo=FALSE,fig.width=12}
+load("~/Dropbox/DAM lab/Math/Tasks/Data/mathreboot4/.RData")
+library(gdata)
+a <- drop.levels(a[!is.na(a$RT) & !is.na(a$Gain),])
+a <- a[a$Correct == 1 & a$Gain == 1 & a$Center > 1000 & a$Center < 10000 & a$RT < 10000,]
+df <- data.frame(rt = c(a$RT, log(a$RT)), center = rep(a$Center,2), func = factor(rep(c("identity", "log"), each = length(a$RT))))
+qplot(center, rt, data = df, geom = "jitter") + facet_wrap(~func, scales = "free_y") + geom_smooth(method = "lm") + theme_bw(base_size = 24)
+# add
+```
+
+========================================================
+
+```{r log_plot2,fig.width=12,fig.height=8}
+ggplot(a, aes(Center, RT)) + geom_jitter() + geom_smooth(method = "lm", size = 2, se = FALSE) + scale_y_log10() + theme_bw(base_size = 24)
+```
+
+Discretizing continuous data
+========================================================
+
+In general, don't do this unless you have an obvious, justifiable non-linearity or you need to visualize and interaction.
+
+```{r juul_setup,echo=FALSE}
+library(ISwR)
+data(juul)
+```
+
+```{r juul_model}
+juul$post <- factor(ifelse(juul$age > 25, 1, 0))
+display(lm(igf1 ~ age * post, data = juul))
+```
+
+Visual analogue
+========================================================
+
+```{r juul_plot,echo=FALSE,fig.height=9,fig.width=10}
+qplot(age, igf1, data = juul, color = post) + geom_smooth(aes(group = post), method = "lm") + theme_bw(base_size = 24)
+```
+
+Building models for prediction
+========================================================
+
+Gelman's rules for including predictors:
+
+* expected sign and "significant"
+* unexpected sign and "significant"
+* expected sign and not-significant
+* remove a predictor IFF unexpected sign and n.s.
+
+Why? Because Gelman like to discuss Type-M and Type-S errors rather than Type-I and Type-II errors.
+
+Model comparison
+========================================================
+
+Similar to adjusted $R^2$, there are other ways to calculate penalized fit.
+
+* Deviance
+  * $-2(log(p(y|\hat{\theta_0})) - log(p(y|\hat{\theta_s})))$
+* BIC
+  * $n \cdot log(1 - R^2) + k\cdot log(n)$
+* AIC
+  * $n \cdot log(1 - R^2) + 2 \cdot k$
+* Many, many others
+
+A quick note on time-series analysis
+========================================================
+
+Times-series data can provide incredibly rich analyses. However:
+
+* errors are generally not independent
+* linearity is often violated
+* in a linear modeling context, number of parameters can quickly become intractable
+
+Consider a dataset with two years worth of data with measures taken every month.
+Unless you expect a perfectly linear trend for your outcome with no change in predictors over time, you likely have to add a minimum of 24 new parameters.
+This number immediately jumps to 48 if you investigate a single continuous interaction.

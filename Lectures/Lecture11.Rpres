@@ -1,0 +1,231 @@
+<script type="text/javascript"
+       src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+ });
+</script>
+
+Stan
+========================================================
+author: Jeffrey Chrabaszcz
+date: 16 January 2014
+transition: none
+width: 1024
+height: 760
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+require(ggplot2)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================
+
+1. How do we know what BEST is doing?
+2. MCMC samplers
+3. Stan/HMC
+4. Data
+5. Parameters
+6. Transformed parameters
+7. Model
+
+How do we know what BEST is doing?
+========================================================
+
+```
+model = {"
+  for (i in 1:Ntotal) {
+    y[i] ~ dt(mu[x[i]], tau[x[i]], nu)
+  }
+  for (j in 1:2) {
+    mu[j] ~ dnorm(muM, muP)
+    tau[j] <- 1/pow(sigma[j], 2)
+    sigma[j] ~ dunif(sigmaLow, sigmaHigh)
+  }
+  nu <- nuMinusOne+1
+  nuMinusOne ~ dexp(1/29)
+"}
+```
+
+MCMC samplers
+========================================================
+
+The above is mode code for **JAGS** - just another gibbs sampler.
+
+* very fast
+* not dependent on a specific software
+* open source
+
+This is not the only sampler!
+It does happen to be the most common one at the moment.
+
+Stan/HMC
+========================================================
+
+Stan is a piece of software developed to implement Hamiltonian Markov Chain simulations.
+Stan can be controlled from R, this solves a lot of problems with data management and output inspection.
+Unfortunately, as with JAGS, Stan has a unique syntax for building models.
+This syntax comes in four sections:
+
+* Data
+* Parameters
+* Transformed Parameters
+* Model
+
+Data
+========================================================
+
+```{r,eval=FALSE}
+data {
+  int<lower=0> N;
+  int<lower=0> lvl;
+  vector[N] y;
+  int x[N];
+  vector[lvl] n;
+  real muM;
+  real muP;
+  real sigmaLow;
+  real sigmaHigh;
+  real df;
+}
+```
+
+Parameters
+========================================================
+
+```{r,eval=FALSE}
+parameters {
+  real mu[lvl];
+  real<lower=0> sigma[lvl];
+  real<lower=0> nuM;
+}
+```
+
+Tranformed parameters
+========================================================
+
+```{r,eval=FALSE}
+transformed parameters {
+  real muDiff;
+  real sigmaDiff;
+  real<lower=0> nu;
+  real effSize;
+  muDiff <- mu[1] - mu[2];
+  sigmaDiff <- sigma[1] - sigma[2];
+  nu <- nuM + 1;
+  effSize <- (mu[1] - mu[2])/sqrt((((n[1] - 1) * sigma[1]) + ((n[2] - 1) * sigma[2]))/(N - 2));
+}
+```
+
+Model
+========================================================
+
+```{r,eval=FALSE}
+model {
+  nuM ~ exponential(df);
+  for (i in 1:N)
+    y[i] ~ student_t(nuM + 1, mu[x[i]], sigma[x[i]]);
+  for (j in 1:2) {
+    mu[j] ~ normal(muM, muP);
+    sigma[j] ~ uniform(sigmaLow, sigmaHigh);
+  }
+}
+```
+
+Passing data to stan
+========================================================
+
+```{r,eval=FALSE}
+test_dat <- list(
+  N = length(c(g1, g2)),
+  n = c(length(g1), length(g2)),
+  lvl = 2,
+  y = c(g1, g2),
+  x = rep(1:2, c(length(g1), length(g2))),
+  muM = mean(c(g1, g2)),
+  muP = (1e6 * var(c(g1, g2))),
+  sigmaLow = (var(c(g1, g2))/1000),
+  sigmaHigh = (var(c(g1, g2)) * 1000),
+  df = 1/29)
+```
+
+========================================================
+
+```{r full_code,echo=FALSE}
+library(rstan)
+library(ISwR)
+data(juul)
+juul <- juul[complete.cases(juul$sex, juul$igf1),]
+
+g1 <- juul$igf1[juul$sex == 1]
+g2 <- juul$igf1[juul$sex == 2]
+  
+t_code <- '
+  data {
+    int<lower=0> N; // number of samples
+    int<lower=0> lvl; // number of groups
+    vector[N] y; // outcome
+    int x[N]; // group
+    vector[lvl] n;
+    real muM;
+    real muP;
+    real sigmaLow;
+    real sigmaHigh;
+    real df;
+  }
+  parameters {
+    real mu[lvl];
+    real<lower=0> sigma[lvl];
+    real<lower=0> nuM;
+  }
+  transformed parameters {
+    real muDiff;
+    real sigmaDiff;
+    real<lower=1> nu;
+    real effSize;
+    muDiff <- mu[1] - mu[2];
+    sigmaDiff <- sigma[1] - sigma[2];
+    nu <- nuM + 1;
+    effSize <- (mu[1] - mu[2])/sqrt((((n[1] - 1) * sigma[1]) + ((n[2] - 1) * sigma[2]))/(N - 2));
+  }
+  model {
+    nuM ~ exponential(df);
+    for (i in 1:N)
+      y[i] ~ student_t(nu, mu[x[i]], sigma[x[i]]);
+    for (j in 1:2) {
+      mu[j] ~ normal(muM, muP);
+      sigma[j] ~ uniform(sigmaLow, sigmaHigh);
+    }
+  }
+'
+
+test_dat <- list(
+  N = length(c(g1, g2)),
+  n = c(length(g1), length(g2)),
+  lvl = 2,
+  y = c(g1, g2),
+  x = rep(1:2, c(length(g1), length(g2))),
+  muM = mean(c(g1, g2)),
+  muP = (1e6 * var(c(g1, g2))),
+  sigmaLow = (sd(c(g1, g2))/1000),
+  sigmaHigh = (sd(c(g1, g2)) * 1000),
+  df = 1/29)
+```
+
+```{r model_fit,message=FALSE,echo=FALSE}
+fit <- stan(model_code = t_code, data = test_dat, iter = 1000, chains = 3, verbose = FALSE)
+```
+
+Inspecting stan objects
+========================================================
+
+There are two main ways to summarize stan output.
+
+* type the object name, use the print function
+* use the plot function
+
+None of these display well, but they resulting output is similar to BEST objects.

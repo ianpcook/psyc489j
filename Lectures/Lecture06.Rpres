@@ -1,0 +1,131 @@
+<script type="text/javascript"
+       src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+ });
+</script>
+
+Logistic regression
+========================================================
+author: Jeffrey Chrabaszcz
+date: 9 January 2014
+transition: none
+width: 1024
+height: 760
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+require(ggplot2)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Modeling competition
+========================================================
+
+1. Some number of teams.
+2. Use any combination or transformation of the data in **ravensdata.csv** to predict "ravens".
+3. Best AIC for an interpretable and graphable model wins.
+
+Outline
+========================================================
+
+1. Logistic regression functions
+2. Fitting a logistic regression
+3. Graphing logistic regressions
+4. Interpretting logistic regression coefficients
+
+Logistic regression
+========================================================
+
+To handle dichotomous outcome variables, we need the logistic, (and logit), functions.
+
+$$
+P(y_i = 1) = logit^{-1}(X_i\beta)
+$$
+
+$$
+logit(p) = log\left(\frac{p}{(1 - p)}\right)
+$$
+
+Logistic function
+========================================================
+
+$$
+logit^{-1}(x) = \frac{1}{(1 + e^{-x})}, logit^{-1}(x) = \frac{e^x}{(1 + e^{x})}
+$$
+
+```{r logistic_plot,echo=FALSE,fig.height=7,fig.width=10}
+x <- seq(-10, 10, by = .001)
+y <- 1/(1 + exp(-x))
+qplot(x, y, geom = "line") + theme_bw(base_size = 24)
+```
+
+Alternate formulation
+========================================================
+
+You can think of this as a two-step process.
+First:
+
+$$
+logit(p_i) = X_i\beta
+$$
+
+This rescales our predictions to range form 0 to 1.
+Then:
+
+$$
+P(y_i = 1) = p_i
+$$
+
+Even if this doesn't help you understand logistic regression, put a pin in it.
+
+Fitting a logistic regression
+========================================================
+
+```{r juul_example,echo=FALSE}
+library(ISwR)
+library(arm)
+data(juul)
+juul$menarche <- factor(juul$menarche)
+juul$tanner <- factor(juul$tanner)
+juul.girl <- juul[juul$age > 8 & juul$age < 20 & complete.cases(juul$menarche),]
+display(fit <- glm(menarche ~ age, data = juul.girl, family = binomial))
+```
+
+How can we determine the median matricarcheal age?
+Set $logit(p)$ equal to 0, which returns the value of age corresponding to a 50% prediction.
+
+```{r age_calc}
+20.01/1.52
+```
+
+Quick graph for one predictor
+========================================================
+
+```{r juul_graph}
+qplot(age, menarche, data = juul.girl) + theme_bw(base_size = 24)
+```
+
+Better graph
+========================================================
+
+```{r juul_graph2,echo=FALSE,fig.height=9,fig.width=9}
+qplot(age, menarche, data = juul.girl, geom = "jitter", position = position_jitter(.1)) + geom_vline(xintercept = 20.01/1.52, size = 1.5, color = "firebrick") + theme_bw(base_size = 24)
+```
+
+Interpreting logistic regression coefficients
+========================================================
+
+Logistic regression coefficients change across the range of the function.
+A few things can help interpretation:
+
+1. Gelman's "divide by 4" rule.
+2. Exponentiate the coefficient
+
+```{r interpretation_examples}
+invlogit(1.52)
+exp(1.52)
+```

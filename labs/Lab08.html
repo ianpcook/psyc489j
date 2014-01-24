@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Lab 8</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Lab 8</h1>
+
+<ol>
+<li>Produce a vector of possible die outcomes for a six-sided die and three corresponding vectors of prior probabilities. The possible die rolls should be <code>die.outcomes &lt;- 1:6</code>. Your three prior probabilities should reflect 3 sets of beliefs:
+
+<ul>
+<li>Equal probability for all 6 outcomes.</li>
+<li>Only possibility is rolling a 1</li>
+<li>Moving from 1 to 6, each possibility becomes half as likely as the previous outcome.</li>
+</ul></li>
+<li>Plot these 3 priors similar to the demonstration using normals.</li>
+<li>Read in &#39;lab08data.csv&#39;, assign this to a variable named <code>rolls</code>. Plot the data from each study.</li>
+<li>Multiply each of your priors by either 10 or 100, assigning each output to a new variable. These will be priors based on either 10 or 100 rolls of the die.</li>
+<li>Wrangle the study data in some way so that you have estimates of the frequency for each roll outcome in order, then (as shown in class), convolve each of your priors, (there are now 3), each of the studies, (you should end up with 6 posterior estimates). Hint: use the <code>table</code> function.</li>
+<li>Plot each of these 6 posteriors, matched with the correct prior and likelihood, (study data), and describe your expectation for rolling dice based on each of these six scenarios.</li>
+<li>Show using <strong>pbinom</strong> and simulations with <strong>rbinom</strong> that simluating coin flips using some parameter <strong>p</strong> converges on the analytic estimates of the mean of hte binomial.</li>
+</ol>
+
+</body>
+
+</html>
+

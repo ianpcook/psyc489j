@@ -1,0 +1,388 @@
+<script type="text/javascript"
+       src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+   tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+ });
+</script>
+
+Basic probability, inference
+========================================================
+author: Jeffrey Chrabaszcz
+date: 6 January 2014
+transition: none
+width: 1024
+height: 760
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+require(ggplot2)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================
+
+1. Basics of probability
+2. Probability distributions
+3. Statistical inference
+4. Classic confidence intervals
+5. Classical hypothesis testing
+6. Problems with *statistical significance*
+
+Basics of probability
+========================================================
+left: 50%
+
+General
+--------------------------------------------------------
+
+1. Definition of probability
+  * $P(A) + P(\neg A) = 1$
+  * $\sum\limits_{k = 1}^N P(x_k) = 1$
+2. Intersection (AND, &)
+  * $P(A \cap B) = P(A) \cdot P(B)$
+3. Union (OR, |)
+  *  $P(A \cup B) = P(A) + P(B) - P(A \cap B)$
+4. Conditional probability
+  * $P(A | B) = \frac{\displaystyle P(A \cap B)}{\displaystyle P(B)}$
+
+***
+
+Bayes' Rule
+--------------------------------------------------------
+
+1. Definition
+  * $P(B | A) = \frac{\displaystyle P(A | B) \cdot P (B)}{\displaystyle P(A)}$  
+2. Finite alternatives
+  * $P(H_i | D) = \frac{\displaystyle P(D | H_i) \cdot P (H_i)}{\displaystyle \sum\limits_{i=1}^N P(D | H_i)}$
+
+AND, OR
+========================================================
+
+```{r load_data,echo=FALSE}
+library(ISwR)
+data(juul)
+```
+
+```{r}
+mean(juul$age[juul$sex == 1 & juul$tanner == 1], na.rm = TRUE)
+mean(juul$age[juul$sex == 1 | juul$tanner == 1], na.rm = TRUE)
+```
+
+Many small random variables
+========================================================
+left: 45%
+
+```{r many_small}
+points <- rbinom(100, 1, .5)
+head(points)
+sum(points)
+all.points <- matrix(rbinom(10000, 1, .5), ncol = 100)
+```
+
+***
+
+```{r many_small2}
+var(points)
+var(colSums(all.points))
+mean(colSums(all.points))
+```
+
+Central limit theorem
+========================================================
+
+Assuming the variance of the individual components is smaller than the aggregate score, (as in the last example), the **central limit theorem** holds.
+
+$$
+\lim_{n\to \infty} P\left(\frac{S_n - n\mu}{\sigma\sqrt{n}} \leq x\right) = \phi(x)
+$$
+
+```{r clt_hist,echo=FALSE,fig.height=4,fig.width=10}
+qplot(colSums(all.points)) + theme_bw(base_size=24)
+```
+
+Surprise! Calculus.
+========================================================
+
+* Derivation, $\frac{dy}{dx}$, is a rate of change. Think of it as the slope of a line.
+* Integration, $\int$, is the area under the curve.
+* Summation, $\sum$, is integration for discrete things.
+
+```{r calc_viz,echo=FALSE, fig.height=4,fig.width=12}
+x <- seq(0, 2, by = .01)
+a <- data.frame(x = rep(x, 3), y = c(x^0, x, .5*x^2), measure = rep(factor(1:3, labels = c("acceleration", "speed", "distance")), each = length(x)))
+qplot(x, y, data = a, geom = "line", group = 1, size = 1.5) + facet_wrap(~measure, scale = "free_y") + theme_bw(base_size = 24) + guides(size = FALSE)
+```
+
+Probability distributions
+========================================================
+
+Probability distributions are special functions that **integrate to 1**.
+One example is a **normal distribution**, which has the following function:
+
+$$
+f(x) = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x - \mu)^2}{2\sigma^2}}
+$$
+
+The **standard normal** is defined as $\mu = 0$ and $\sigma = 1$.
+
+```{r standard_normal,echo=FALSE,fig.height=4,fig.width=6}
+qplot(seq(-4, 4, by = .01), dnorm(seq(-4, 4, by = .01)), geom = "line", size = 1) + ggtitle("Standard normal") + theme_bw() + guides(size = FALSE) + xlab("density") + ylab("x")
+```
+
+Mean and variance
+========================================================
+
+Expected value of the normal distribution is the mean:
+
+$$
+E[X] = \int_{-\infty}^{\infty} x \cdot f(x) dx
+$$
+
+For a sample, we can't integrate:
+
+$$
+\bar{X} = \sum\limits_{i = 1}^N \frac{x_i}{N}
+$$
+
+Knowing this, we can also get an estimate of spread:
+
+$$
+\sigma^{2}_x = \frac{\sum\limits_{i = 1}^N \left(x_i - \bar{x}\right)^2}{N - 1}
+$$
+
+Normals in R
+========================================================
+left: 50%
+Most standard probability distributions have a set of functions in R.
+
+* density, d
+* distribution, p
+* quantile, q
+* random deviates, r
+
+Will also work for binomial, poisson, etc.
+
+***
+
+```{r}
+pnorm(0)
+rnorm(10)
+```
+
+Binomial
+========================================================
+
+This distribution represents the number of times some binary event occurs when it has probability $p$ and number of chances $k$.
+Two parameters: $n$ and $k$.
+
+$$
+P(x = k) = {n \choose k}p^k(1 - p)^{n-k}
+$$
+
+```{r binomial,echo=FALSE,fig.height=5,fig.width=7}
+x <- 0:10
+a <- data.frame(x = rep(x, 3), y = c(dbinom(x, 10, .5), dbinom(x, 10, .1), dbinom(x, 10, .9)), prob = factor(rep(c(.1, .5, .9), each = length(x))))
+qplot(x, y, data = a, color = prob, group = prob, geom = "line") + geom_point(size = 2) + theme_bw(base_size=24)
+```
+
+Poisson
+========================================================
+
+The probability of a number of events occuring in a given time period. Only one parameter, $\lambda$.
+
+$$
+P(x = k) = \frac{\lambda^k e^{-k}}{k!}
+$$
+
+```{r poisson,echo=FALSE,fig.width=7,fig.height=5}
+x <- 0:20
+a <- data.frame(x = rep(x, 3), y = c(dpois(x, 1), dpois(x, 5), dpois(x, 10)), rate = factor(rep(c(1, 5, 10), each = length(x))))
+qplot(x, y, data = a, color = rate, group = rate, geom = "line") + geom_point(size = 2) + theme_bw(base_size=24)
+```
+
+Estimated regression coefficients
+========================================================
+
+We'll get to the linear model tomorrow, but regression coefficients are ultimately normally distributed.
+This happens because regression weights are a linear combination of data. Formally:
+
+$$
+\beta = (X^tX)^{-1}X^ty
+$$
+
+$$
+y_i = \beta_0 + \beta_1 \cdot x_{1i} + \beta_2 \cdot x_{2i} + ... + \epsilon_i
+$$
+
+This is important for later in the class! Parameters, just like data, can be subject to distributions.
+
+Statistical modeling
+========================================================
+left: 50%
+
+sampling model
+-----
+
+* data represent perfect observations of a small sample
+* sample is representative of a population of interest
+* goal is to learn about the population
+* generally combined with measurement model
+
+***
+
+measurement model
+-----
+
+* data represent imperfect observations of a sample of interest
+* sample is itself interesting, regardless of any superpopulation
+* goal is to learn about sample despite measurement error
+
+Parameters and estimation
+========================================================
+left: 50%
+
+Statistical tests have a common goal: quantify uncertainty.
+Before we gather any data, we have some ideas about our outcome variable.
+Then we gather some data and we make some decisions:
+
+* what did we know before we started?
+* what did we learn from our experiment?
+* how much have our beliefs changed and what do we know now?
+
+***
+
+```{r pre_bayes,echo=FALSE,fig.width=8,fig.height=14}
+x <- seq(0, 1, by = .01)
+a <- data.frame(x = rep(x, 3), y = c(dbeta(x, 1, 1), dbeta(x, 1, 5), dbeta(x, 2, 6)), rate = factor(rep(1:3, each = length(x)), labels = c("prior", "likelihood", "posterior")))
+qplot(x, y, data = a, geom = "line") + facet_grid(rate~.) + theme_bw(base_size=24)
+```
+
+Standard errors
+========================================================
+
+Both the mean and standard deviation are independent of sample size.
+With each sample of the mean, our estimate of the population value increases.
+This is because the **standard error** decreases.
+
+$$
+SEM = \sqrt{\frac{\sigma^2}{N}}
+$$
+
+```{r std_error,fig.width=12,fig.height=4,echo=FALSE}
+x <- seq(-1, 1, by = .001)
+a <- data.frame(x = rep(x, 2), y = c(dnorm(x, sd = 1/sqrt(10)), dnorm(x, sd = 1/sqrt(100))), group = factor(rep(0:1, each = length(x)), labels = c("10", "100")))
+qplot(x, y, data = a, group = group, geom = "line", color = group) + scale_fill_manual(values = c("firebrick", "steelblue")) + theme_bw(base_size = 24)
+```
+
+Classical confidence intervals
+========================================================
+
+```{r con_int}
+y <- c(35, 34, 38, 35, 37)
+n <- length(y)
+estimate <- mean(y)
+se <- sd(y)/sqrt(n)
+int.50 <- estimate + qt(c(.25, .75), n-1) * se
+int.95 <- estimate + qt(c(.025, .975), n-1) * se
+int.50
+int.95
+```
+
+Confidence intervals for proportions
+========================================================
+
+```{r co_int_prop}
+y <- 700
+n <- 1000
+estimate <- y/n
+se <- sqrt(estimate * (1 - estimate)/n)
+int.95 <- estimate + qnorm(c(.025, .975)) * se
+int.95
+```
+
+Discrete data
+========================================================
+
+```{r discrete_data}
+y <- rep(0:4, c(600, 300, 50, 30, 20))
+n <- length(y)
+estimate <- mean(y)
+se <- sd(y)/sqrt(n)
+int.50 <- estimate + qt(c(.25, .75), n-1) * se
+int.50
+```
+
+Numerical comparisons
+========================================================
+
+Assume we have proportion of people improved by some treatment for two groups.
+
+$$
+\begin{array}{rcl}
+80\% &\pm& 1.4\% \\
+74\% &\pm& 1.3\%
+\end{array}
+$$
+
+Rather than explicitly comparing the groups, we can recast these quantities and examine the difference.
+
+$$
+\begin{array}{rcl}
+80\% - 74\% &=& 6\% \\
+\sqrt{(1.4\%)^2 + (1.3\%)^2} &=& 1.9\%
+\end{array}
+$$
+
+Visual comparisons
+========================================================
+
+```{r visual_comp,echo=FALSE,message=FALSE}
+polls <- matrix (scan("data/polls.dat"), ncol=5, byrow=TRUE)
+support <- polls[,3]/(polls[,3]+polls[,4])
+year <-  polls[,1] + (polls[,2]-6)/12
+se <- sqrt(support * (1 - support)/1000)
+a <- data.frame(year, support, se)
+```
+
+```{r viz_comp_plot,fig.width=14}
+qplot(year, support, data = a, geom = "errorbar", ymin = support - se, ymax = support + se) + geom_point(size = 2) + theme_bw(base_size = 24)
+```
+
+Classical hypothesis testing
+========================================================
+
+All NHST involves setting up a point null and testing the probability of observing your data given that the null is true.
+
+$$
+H_0: \mu_1 - \mu_2 = 0
+$$
+
+You can think of this like confidence intervals: if we say the difference is zero, we can then look at the observed difference and the 95% CI around the difference. If 0 is not in the CI, reject the null with (at least) a 5% false alarm rate.
+
+Problems with statistical significance
+========================================================
+left: 50%
+
+statistical significance does not equal practical significance
+------
+
+SEM decreases with $N$, so even very small effects can become *significant* with a large effect size.
+
+$$
+t = \frac{\bar{x}}{\sqrt{\frac{\sigma^2}{N}}}
+$$
+
+***
+
+changes in significance are not themselves significant
+-----
+
+```{r problems_with,echo=FALSE,fig.height=6}
+x <- seq(-3, 4, by = .01)
+a <- data.frame(x = rep(x, 3), y = c(dnorm(x), dnorm(x, mean = 1), dnorm(x, mean = 1.2)), rate = factor(rep(0:2, each = length(x)), labels = c("control", "not-significant", "significant")))
+qplot(x, y, data = a, group = rate, color = rate, geom = "line") + scale_color_manual(values = c("black", "firebrick", "steelblue")) + theme_bw(base_size = 24)
+```
