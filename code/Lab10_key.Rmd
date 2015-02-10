@@ -1,0 +1,30 @@
+Lab 10
+=====
+
+1. Load the data in exPermData.mat from last Friday.
+2. Reformat the data and run a t test on it using the t.test function.
+3. At this point either:
+  * Fit a BESTmcmc model to the exPerm data; or,
+  * Load the BESTmcmc model form the ex_perm.RData file.
+4. Interpret the coefficients. Do these groups differ on any parameter?
+5. Get the 50% CI for both mu1 and mu2 by accessing the BESTmcmc object without using summary.
+
+```{r}
+library(R.matlab)
+library(reshape2)
+library(BEST)
+dat <- readMat("~/Dropbox/statistics/students/labs/permExData.mat")
+df <- melt(dat)
+df$L1 <- factor(df$L1)
+with(df, t.test(value[unclass(L1) == 1], value[unclass(L1) == 2]))
+#with(df, BESTmcmc(value[unclass(L1) == 1], value[unclass(L1) == 2]))
+load("students/models/ex_perm.RData")
+summary(ex.perm.model)
+quantile(ex.perm.model$mu1, probs = c(.25, .75))
+quantile(ex.perm.model$mu2, probs = c(.25, .75))
+```
+
+```
+These groups differ on both mean and variability.
+Our expected difference is nearly 2 standard deviations according to the effSz parameter, which is a large magnitude difference.
+```

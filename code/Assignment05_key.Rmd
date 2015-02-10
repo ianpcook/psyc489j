@@ -1,0 +1,31 @@
+Assignment 5
+======
+
+1. Load the ChickWeight dataset
+2. Model weight as a function of Time and Diet.
+3. Explain the coefficients, recommend whether you think Time or Diet predicts weight.
+4. Create a plot or series of plots to go along with this model. Does the plot suggest that you might be missing something in your model?
+
+```{r}
+library(arm)
+data(ChickWeight)
+fit <- lm(weight ~ Time + Diet, data = ChickWeight)
+display(fit)
+```
+
+If we predict weight as independently predicted by Time and Diet, we would predict an increase of about 9 on our outcome for each unit increase in time. We would also infer that we predict diets 2, 3, and 4 to produce higher weights than diet 1, (because the coefficients for those diets are more than twice the coefficient SE and diet 1 is our baseline). If we examine a plot of the data, however, we can see that weight seems to change over time differently with each diet.
+
+```{r}
+library(ggplot2)
+ggplot(ChickWeight, aes(x = Time, y = weight, color = Diet)) + geom_point() + geom_smooth(method = "lm", se = FALSE)
+# Equivalently:
+# qplot(Time, weight, data = ChickWeight, color = Diet, geom = c("point", "smooth"), se = FALSE, method = "lm")
+```
+
+This would be captured by including an interaction between Time and Diet in our model, which improves the fit of our model.
+
+```{r}
+fit2 <- lm(weight ~ Time + Diet + Time:Diet, data = ChickWeight)
+AIC(fit)
+AIC(fit2)
+```

@@ -1,0 +1,40 @@
+Assignment 9
+=====
+
+Assume we are betting on the outcome of flipping a coin and you become interested in the properties of the coin.
+After all, your bets are conditioned on this coin being fair. You decide that the coin could be weighted in one of three ways:
+
+* p(head) = .25
+* p(head) = .5
+* p(head) = .75
+
+Before the assignment continues, assign prior probabilities to these values.
+When assigning these values, recall that I am a well-meaning instructor but also conniving and willing to lie for money.
+Now say we flip a coin 10 times, observing the following outcome: HHHHHHHHHT
+
+1. Computer P(D|H) for each of the hypotheses, that P(head) = .25, .5, and .75.
+2. Use Bayes' theorem to calculate P(H|D) for each hypothesis.
+3. What was the probability of observing this outcome? Does this coin seem random?
+4. What if our hypotheses were fair coin, heads on both sides, or tails on both sides. How would you compute the P(H|D) for each outcome?
+
+Computation
+---
+
+```{r}
+ps <- c(.25, .5, .75)
+priors <- c(.1, .8, .1)
+heads <- 9
+n <- 10
+lik <- sapply(ps, function(x) dbinom(heads, n, x))
+posts <- lik * priors/sum(lik)
+```
+
+Short answers
+---
+
+The probability of observing this outcome, 9 heads followed by a tail, varies based on the true probability of success, or the coin landing on head, for this particular coin.
+That probability is expressed by the calculated likelihoods for the set of hypotheses we entertained in this exercise.
+I would also say that the coin is random because the output of the coin-flipping process is not determined.
+Though we maybe believe that p(head) is quite high, we have evidence that both heads and tails are possible outcomes, meaning that the output must be  expressed as a probability.
+This also means that any hypothesis that entail a determined output, heads on both sides or tails on both sides, will necessarily have a posterior probability of 0.
+P(H|D) could be calculated as normal, but the likelihood of at least one event in each case would be equal to zero, causing the likelihood to drop to zero.

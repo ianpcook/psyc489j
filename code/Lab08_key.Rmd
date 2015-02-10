@@ -1,0 +1,83 @@
+Lab 08
+=====
+
+1. Produce a vector of possible die outcomes for a six-sided die and three corresponding vectors of prior probabilities. The possible die rolls should be `die.outcomes <- 1:6`. Your three prior probabilities should reflect 3 sets of beliefs:
+  * Equal probability for all 6 outcomes.
+  * Only possibility is rolling a 1
+  * Moving from 1 to 6, each possibility becomes half as likely as the previous outcome.
+2. Plot these 3 priors similar to the demonstration using normals.
+3. Read in 'lab08data.csv', assign this to a variable named `rolls`. Plot the data from each study.
+4. Multiply each of your priors by either 10 or 100, assigning each output to a new variable. These will be priors based on either 10 or 100 rolls of the die.
+5. Wrangle the study data in some way so that you have estimates of the frequency for each roll outcome in order, then (as shown in class), convolve each of your priors, (there are now 3), each of the studies, (you should end up with 6 posterior estimates). Hint: use the `table` function.
+6. Plot each of these 6 posteriors, matched with the correct prior and likelihood, (study data), and describe your expectation for rolling dice based on each of these six scenarios.
+7. Show using **pbinom** and simulations with **rbinom** that simluating coin flips using some parameter **p** converges on the analytic estimates of the mean of the binomial.
+
+Section 1
+---
+
+```{r}
+die.outcomes <- 1:6
+prior.1 <- rep(1/6, 6)
+prior.2 <- c(1, rep(0,5))
+prior.3 <- c(32, 16, 8, 4, 2, 1)
+prior.3 <- prior.3/sum(prior.3)
+```
+
+Section 2
+---
+
+```{r,fig.height=4}
+library(ggplot2)
+df <- data.frame(x = rep(die.outcomes, 3), y = c(prior.1, prior.2, prior.3), prior = rep(1:3, each = 6))
+qplot(x, y, data = df, geom = "line") + facet_wrap(~prior)
+```
+
+Section 3
+---
+
+```{r,fig.height=4}
+library(reshape2)
+rolls <- read.csv("students/labs/lab08data.csv")
+qplot(value, data = melt(rolls)) + facet_wrap(~variable)
+```
+
+Section 4
+---
+
+```{r}
+prior.1 <- prior.1 * 10
+prior.2 <- prior.2 * 100
+prior.3 <- prior.3 * 100
+```
+
+Section 5
+---
+
+```{r}
+data.1 <- table(rolls$study.1)
+data.2 <- table(rolls$study.2)
+```
+
+Section 6
+---
+
+```{r,fig.height=6}
+post.1 <- prior.1 * data.1
+post.2 <- prior.2 * data.1
+post.3 <- prior.3 * data.1
+post.4 <- prior.1 * data.2
+post.5 <- prior.2 * data.2
+post.6 <- prior.3 * data.2
+df <- data.frame(x = rep(die.outcomes, 6), y = c(post.1, post.2, post.3, post.4, post.5, post.6), prior = rep(rep(1:3, each = 6), 2), dat = rep(1:2, each = 18))
+qplot(x, y, data = df, geom = "line") + facet_grid(dat~prior)
+```
+
+Section 7
+---
+
+pbinom gives the cumulative mass up to the first argument, so we know that 50% of coin flips with p(success) = .5 should be successes and 50% should be failures. This means that a large number of draws from this distribution should yield a mean success of .5.
+
+```{r}
+pbinom(.5, 1, .5)
+mean(rbinom(10000, 1, .5))
+```

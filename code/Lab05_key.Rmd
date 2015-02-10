@@ -1,0 +1,57 @@
+Lab 5
+=====
+
+Model selection
+---
+
+* Load the juul data in the ISwR package.
+* Build the best model you can to predict growth hormone levels. Choices you make should include:
+  * included predictors
+  * transformations of predictors, (Note: transform at least one predictor in some way.)
+* Whatever you final model, build a proper graph of the model.
+* Interpret each coefficient.
+
+Other transformations
+---
+* Load the diamonds dataset in the ggplot2 package
+* Build a model to predict log(price), minimally include carat and cut with whatever transformations seem appropriate.
+* Interpret these coefficients.
+* Build a plot to go along with the model.
+
+Model selection
+---
+
+```{r,message=FALSE,warning=FALSE}
+library(ISwR)
+library(ggplot2)
+library(arm)
+data(juul)
+juul$post <- factor(ifelse(juul$age > 25, 1, 0))
+fit1 <- lm(log(igf1) ~ age * post, data = juul)
+display(fit1)
+```
+
+```
+In this model, all of the coefficients are statistically reliable. The intercept suggests that IGF-1 at birth should be roughly 5, though we have no individuals in our study of that age. The coefficient for age suggests that IGF-1 should increase by 8% per year of life prior to finishing puberty. The Post1 coefficient implies that a newborn who had completed puberty should have an average IGF-1 level of about 6, though this is nonsensical. Our intercept term says that, having finished puberty, we expect a drop of .08 - .1 = 2% in IGF-1 per year.
+```
+
+```{r,warning=FALSE,message=FALSE}
+ggplot(juul, aes(age, igf1, color = post)) + geom_point() + geom_smooth(method = "lm") + scale_y_log10()
+```
+
+Other transformations
+---
+
+```{r}
+data(diamonds)
+fit2 <- lm(log(price) ~ log(carat) * cut, data = diamonds)
+display(fit2)
+```
+
+```
+Our intercept in this model is meaningless both because it requires transformation and because it represents our baseline cut of diamond at 0 carat weight. log(carat) tells us to expect a 1.66% increase in price for each 1% increase in carat. The remaining coefficients tell us that different cuts have varying effects on percent of price relative to the baseline groups, and that the expect change in price for a 1% increase in carat can vary by as much as 0.1%.
+```
+
+```{r}
+qplot(carat, price, data = diamonds, color = cut, geom = c("point", "smooth"), method = "lm", log = "xy")
+```

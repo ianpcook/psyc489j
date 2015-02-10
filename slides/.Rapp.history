@@ -1,0 +1,911 @@
+"rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",
+"recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",
+"weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")
+summary(dat)
+head(dat)
+summary(dat)
+head(dat)
+temp <- dat[dat$subj == 100 & cueChoose == 0,]
+temp <- dat[dat$subj == 100 & dat$cueChoose == 0,]
+dim(temp)
+cues <- temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]
+summary(cues)
+winner <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)
+cues.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))
+cue.mat <- t(apply(cue.array, 2, c))
+cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))
+cue.mat <- t(apply(cue.array, 2, c))
+str(cue.array)
+summary(cue.array)
+cue.array
+cue.mat <- t(apply(cue.array, 2, c))
+cue.mat
+con.array <- sapply(winner, function(x) getVec(x == 0, lose, win))
+con.array
+con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))
+episodic <- cbind(t(con.mat), cue.mat)
+head(episodic)
+dat <- read.csv("/Users/jchrszcz/Dropbox/ponyExperiment/exp1/matlaboutput.csv", header = F)#
+names(dat) <- c("subj", "accuracy", "cueChoose", "cue1", "cue2", "cue3", "cue4",#
+  "leftCrit",  "rightCrit", "leftCue1", "leftCue2", "leftCue3", "leftCue4",#
+  "rightCue1", "rightCue2", "rightCue3", "rightCue4", "leftWeighted1",#
+  "leftWeighted2", "leftWeighted3", "leftWeighted4", "rightWeighted1",#
+  "rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",#
+  "recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",#
+  "weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")#
+#
+createEpi <- function(winner, cues) {#
+  # cue vectors#
+#
+  cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))#
+  cue.mat <- t(apply(cue.array, 2, c))#
+#
+  # context vectors (what to do about ties?)#
+#
+  con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))#
+  episodic <- cbind(t(con.mat), cue.mat)#
+}
+episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))
+wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)
+episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))
+?prod
+prod(dim(episodic))
+degrade <- runif(prod(size(episodic)))
+degrade <- runif(prod(dim(episodic)))
+degrade <- matrix(runif(prod(dim(episodic))), ncol = ncol(episodic))
+degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))
+L <- .9
+degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))
+episodic <- episodic * degrade
+summary(episodic)
+probe <- cVec(2 * vl)
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) x %*% probe)
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe))
+str(acts)
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe))
+head(acts)
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))
+summary(acts)
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe)) ^ 3
+summary(acts)
+require(reshape2)#
+require(plyr)#
+require(ggplot2)#
+#
+L <- .9#
+#
+vl <- 6 # vector length#
+nc <- 4 # number cues#
+tv <- 6 # total vectors#
+#
+cVec <- function(n) {#
+  sample(c(-1, 1), n, replace = TRUE)#
+}#
+#
+# pos/neg cues (do I need different values for each cue? worth exploring)#
+#
+pos <- cVec(vl)#
+neg <- cVec(vl)#
+win <- cVec(2 * vl)#
+lose <- cVec(2 * vl)#
+#
+# define semantic memory#
+#
+count.obj <- t(sapply(0:15, function(x) as.integer(intToBits(x)))[1:4,])#
+#
+getVec <- function(x, tru, fal) {#
+  if (x) {#
+    return(tru)#
+  } else {#
+    fal#
+  }#
+}#
+#
+sem.array <- apply(count.obj, c(1,2), function(x) getVec(x == 0, neg, pos))#
+sem.mat <- t(apply(sem.array, 2, c))#
+#
+random.context <- replicate(16, cVec(2 * vl))#
+#
+semantic <- cbind(t(random.context), sem.mat)#
+#
+# form memory vectors#
+#
+## for each participant...#
+#
+dat <- read.csv("/Users/jchrszcz/Dropbox/ponyExperiment/exp1/matlaboutput.csv", header = F)#
+names(dat) <- c("subj", "accuracy", "cueChoose", "cue1", "cue2", "cue3", "cue4",#
+  "leftCrit",  "rightCrit", "leftCue1", "leftCue2", "leftCue3", "leftCue4",#
+  "rightCue1", "rightCue2", "rightCue3", "rightCue4", "leftWeighted1",#
+  "leftWeighted2", "leftWeighted3", "leftWeighted4", "rightWeighted1",#
+  "rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",#
+  "recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",#
+  "weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")#
+#
+createEpi <- function(winner, cues) {#
+  # cue vectors#
+#
+  cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))#
+  cue.mat <- t(apply(cue.array, 2, c))#
+#
+  # context vectors (what to do about ties?)#
+#
+  con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))#
+  epi <- cbind(t(con.mat), cue.mat)#
+}#
+#
+temp <- dat[dat$subj == 100 & dat$cueChoose == 0,]#
+wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+episodic <- episodic * degrade#
+#
+# form undefined probe from episodic#
+#
+## set A-sub-C?#
+## for each trial at test...#
+#
+probe <- cVec(2 * vl)#
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe)) ^ 3
+summary(acts)
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))
+summary(acts)
+dim(episodic)
+length(acts)
+###### TODO ######
+# need a new context vector?#
+#
+require(reshape2)#
+require(plyr)#
+require(ggplot2)#
+#
+L <- .9#
+A_C <- .216#
+#
+vl <- 6 # vector length#
+nc <- 4 # number cues#
+tv <- 6 # total vectors#
+#
+cVec <- function(n) {#
+  sample(c(-1, 1), n, replace = TRUE)#
+}#
+#
+# pos/neg cues (do I need different values for each cue? worth exploring)#
+#
+pos <- cVec(vl)#
+neg <- cVec(vl)#
+win <- cVec(2 * vl)#
+lose <- cVec(2 * vl)#
+#
+# define semantic memory#
+#
+count.obj <- t(sapply(0:15, function(x) as.integer(intToBits(x)))[1:4,])#
+#
+getVec <- function(x, tru, fal) {#
+  if (x) {#
+    return(tru)#
+  } else {#
+    fal#
+  }#
+}#
+#
+sem.array <- apply(count.obj, c(1,2), function(x) getVec(x == 0, neg, pos))#
+sem.mat <- t(apply(sem.array, 2, c))#
+#
+random.context <- replicate(16, cVec(2 * vl))#
+#
+semantic <- cbind(t(random.context), sem.mat)#
+#
+# form memory vectors#
+#
+## for each participant...#
+#
+dat <- read.csv("/Users/jchrszcz/Dropbox/ponyExperiment/exp1/matlaboutput.csv", header = F)#
+names(dat) <- c("subj", "accuracy", "cueChoose", "cue1", "cue2", "cue3", "cue4",#
+  "leftCrit",  "rightCrit", "leftCue1", "leftCue2", "leftCue3", "leftCue4",#
+  "rightCue1", "rightCue2", "rightCue3", "rightCue4", "leftWeighted1",#
+  "leftWeighted2", "leftWeighted3", "leftWeighted4", "rightWeighted1",#
+  "rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",#
+  "recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",#
+  "weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")#
+#
+createEpi <- function(winner, cues) {#
+  # cue vectors#
+#
+  cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))#
+  cue.mat <- t(apply(cue.array, 2, c))#
+#
+  # context vectors (what to do about ties?)#
+#
+  con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))#
+  epi <- cbind(t(con.mat), cue.mat)#
+}#
+#
+temp <- dat[dat$subj == 100 & dat$cueChoose == 0,]#
+wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+episodic <- episodic * degrade#
+#
+# form undefined probe from episodic#
+#
+## set A-sub-C?#
+## for each trial at test...#
+#
+probe <- cVec(2 * vl)#
+acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+# get relative activations from semantic#
+#
+activated <- episodic[acts > A_C,]
+dim(activated)
+i_c <- apply(activated, 1, function(x) x * probe)
+dim(i_c)
+head(activated)
+head(i_c)
+i_c <- colSums(apply(activated, 1, function(x) x * probe)) / nrow(activated)
+dim(i_c)
+i_c
+apply(activated, 1, function(x) x * probe))
+apply(activated, 1, function(x) x * probe)
+i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)
+i_c
+semantic.act <- apply(semantic, 1, function(x) x * i_c[-(1:12)])
+warnings
+warnings()
+i_c
+i_c[-(1:12)]
+dim(semantic)
+semantic.act <- apply(semantic, 1, function(x) x * i_c)
+smenatic.act
+semnatic.act
+semnantic.act
+semantic.act
+semantic.act <- apply(semantic, 1, function(x) sum(x * i_c) / length(probe))
+semantic
+semantic.act
+semantic.act <- apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2
+semantic.act
+?sample
+?sample
+semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)
+i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)
+sem.reshape <- matrix(mem, ncol = 6, byrow = TRUE)
+mem <- sample(1:16, prob = semantic.act)
+i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)
+sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)
+i_c.reshape
+sem.reshape
+dim(semantic)
+mem
+mem <- sample(1:16, 1, prob = semantic.act)
+mem
+sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)
+sem.reshape
+cue.act <- rowSums(i_c.reshape * sem.reshape) / 6
+cue.act
+cue <- max(cue.act[3:6])
+cue
+?which
+?which
+which(cue.act[3:6] == max(cue.act[3:6]))
+cue.act[3:6]
+rm(list = ls())
+L <- .9#
+A_C <- .216#
+#
+vl <- 6 # vector length#
+nc <- 4 # number cues#
+tv <- 6 # total vectors#
+#
+cVec <- function(n) {#
+  sample(c(-1, 0, 1), n, replace = TRUE)#
+}#
+#
+# pos/neg cues (do I need different values for each cue? worth exploring)#
+#
+pos <- cVec(vl)#
+neg <- cVec(vl)#
+win <- cVec(2 * vl)#
+lose <- cVec(2 * vl)#
+#
+# define semantic memory#
+#
+count.obj <- t(sapply(0:15, function(x) as.integer(intToBits(x)))[1:4,])#
+#
+getVec <- function(x, tru, fal) {#
+  if (x) {#
+    return(tru)#
+  } else {#
+    fal#
+  }#
+}#
+#
+sem.array <- apply(count.obj, c(1,2), function(x) getVec(x == 0, neg, pos))#
+sem.mat <- t(apply(sem.array, 2, c))#
+#
+random.context <- replicate(16, cVec(2 * vl))#
+#
+semantic <- cbind(t(random.context), sem.mat)#
+#
+# form memory vectors#
+#
+## for each participant...#
+#
+dat <- read.csv("/Users/jchrszcz/Dropbox/ponyExperiment/exp1/matlaboutput.csv", header = F)#
+names(dat) <- c("subj", "accuracy", "cueChoose", "cue1", "cue2", "cue3", "cue4",#
+  "leftCrit",  "rightCrit", "leftCue1", "leftCue2", "leftCue3", "leftCue4",#
+  "rightCue1", "rightCue2", "rightCue3", "rightCue4", "leftWeighted1",#
+  "leftWeighted2", "leftWeighted3", "leftWeighted4", "rightWeighted1",#
+  "rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",#
+  "recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",#
+  "weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")#
+#
+createEpi <- function(winner, cues) {#
+  # cue vectors#
+#
+  cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))#
+  cue.mat <- t(apply(cue.array, 2, c))#
+#
+  # context vectors (what to do about ties?)#
+#
+  con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))#
+  epi <- cbind(t(con.mat), cue.mat)#
+}#
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+}
+oneTrial(100)
+debug(oneTrial)
+oneTrial(100)
+undebug(oneTrialk)
+undebug(oneTrial)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  if (max(acts) < A_C) {#
+    return(sample(1:4, 1))#
+  }#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+}
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  if (max(acts) < A_C) {#
+    return(sample(1:4, 1))#
+  }#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+  return(cue)#
+}
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+oneTrial(100)
+replicate(100, oneTrial)
+replicate(100, oneTrial(100))
+replicate(100, oneTrial(100))
+temp <- replicate(100, oneTrial(100))
+hist(temp)
+hist(unlist(temp))
+summary(dat)
+sapply(dat$subj, function(x) replicate(100, oneTrial(x)))
+traceback()
+sapply(dat$subj[1:5], function(x) replicate(100, oneTrial(x)))
+L <- .9#
+A_C <- .216#
+#
+vl <- 6 # vector length#
+nc <- 4 # number cues#
+tv <- 6 # total vectors#
+#
+cVec <- function(n) {#
+  sample(c(-1, 0, 1), n, replace = TRUE)#
+}#
+#
+# pos/neg cues (do I need different values for each cue? worth exploring)#
+#
+pos <- cVec(vl)#
+neg <- cVec(vl)#
+win <- cVec(2 * vl)#
+lose <- cVec(2 * vl)#
+#
+# define semantic memory#
+#
+count.obj <- t(sapply(0:15, function(x) as.integer(intToBits(x)))[1:4,])#
+#
+getVec <- function(x, tru, fal) {#
+  if (x) {#
+    return(tru)#
+  } else {#
+    fal#
+  }#
+}#
+#
+sem.array <- apply(count.obj, c(1,2), function(x) getVec(x == 0, neg, pos))#
+sem.mat <- t(apply(sem.array, 2, c))#
+#
+random.context <- replicate(16, cVec(2 * vl))#
+#
+semantic <- cbind(t(random.context), sem.mat)#
+#
+# form memory vectors#
+#
+## for each participant...#
+#
+dat <- read.csv("/Users/jchrszcz/Dropbox/ponyExperiment/exp1/matlaboutput.csv", header = F)#
+names(dat) <- c("subj", "accuracy", "cueChoose", "cue1", "cue2", "cue3", "cue4",#
+  "leftCrit",  "rightCrit", "leftCue1", "leftCue2", "leftCue3", "leftCue4",#
+  "rightCue1", "rightCue2", "rightCue3", "rightCue4", "leftWeighted1",#
+  "leftWeighted2", "leftWeighted3", "leftWeighted4", "rightWeighted1",#
+  "rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",#
+  "recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",#
+  "weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")#
+#
+createEpi <- function(winner, cues) {#
+  # cue vectors#
+#
+  cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))#
+  cue.mat <- t(apply(cue.array, 2, c))#
+#
+  # context vectors (what to do about ties?)#
+#
+  con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))#
+  epi <- cbind(t(con.mat), cue.mat)#
+}#
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  if (max(acts) <= A_C) {#
+    return(sample(1:4, 1))#
+  }#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+  return(cue)#
+}
+sapply(dat$subj[1:5], function(x) replicate(100, oneTrial(x)))
+temp <- sapply(dat$subj[1:5], function(x) replicate(100, oneTrial(x)))
+str(temp)
+head(temp)
+library(reshape2)
+tmp <- melt(temp)
+head(tmp)
+qplot(value, data = tmp) + facet_wrap(~Var2)
+qplot(value, data = tmp) + facet_wrap(~Var2)
+qplot(value, data = tmp, geom = "histogram") + facet_wrap(~Var2)
+ggplot(tmp, aes(value)) + geom_histogram() + facet_wrap(~Var2)
+summary(tmp)
+summary(temp)
+head(temp)
+temp[1,1]
+temp[1,2]
+temp[1,3]
+temp[[1]]
+temp[1]
+temp[1][[1]]
+temp[1][1]
+dim(temp)
+class(temp)
+mode(temop)
+mode(temp)
+temp <- replicate(100, oneTrial(100))
+hist(unlist(temp))
+temp <- replicate(100, oneTrial(101))
+hist(unlist(temp))
+hist(unlist(temp))
+summary(dat)
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+temp <- replicate(5000, oneTrial(101))
+hist(unlist(temp))
+L <- .7
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+L <- .5
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+L <- .7#
+A_C <- 0
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+.216 ^ (1/3)
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- win # cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  if (max(acts) <= A_C) {#
+    return(sample(1:4, 1))#
+  }#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+  return(cue)#
+}
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+A_C <- .216
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+L <- 1
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+dim(sem.mat)
+for (i in 1:16) {#
+  for (j in 1:4) {#
+    if (count.obj[i, j] == 0) {#
+      sem.mat[i, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]#
+    } else {#
+    }#
+  }#
+}
+sem.mat
+cues <- matrix(cVec(8 * 6), ncol = 4, nrow = 2)
+coes
+cues
+cues <- matrix(cVec(8 * 6), ncol = 24, nrow = 2)
+cues
+for (i in 1:16) {#
+  for (j in 1:4) {#
+    sem.mat[i, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]<- cues[count.obj + 1, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]#
+#
+  }#
+}
+j <- 1
+seq(1 + ((j - 1) * 6)
+)
+seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)
+j <- 2
+seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)
+j <- 3
+seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)
+j <- 4
+seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)
+dim(sem.mat)
+count.obj
+for (i in 1:16) {#
+  for (j in 1:4) {#
+    sem.mat[i, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]<- cues[count.obj[i,j] + 1], seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]#
+#
+  }#
+}
+for (i in 1:16) {#
+  for (j in 1:4) {#
+    sem.mat[i, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]<- cues[count.obj[i,j] + 1, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]#
+  }#
+}
+sem.mat <- matrix(NA, ncol = 24, nrow = 16)
+sem.mat
+for (i in 1:16) {#
+  for (j in 1:4) {#
+    sem.mat[i, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]<- cues[count.obj[i,j] + 1, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]#
+  }#
+}
+sem.mat
+cues
+cVec <- function(n) {#
+  sample(c(-1, 0, 1), n, replace = TRUE)#
+}#
+#
+# pos/neg cues (do I need different values for each cue? worth exploring)#
+#
+cues <- matrix(cVec(8 * 6), ncol = 24, nrow = 2)#
+win <- cVec(2 * vl)#
+lose <- cVec(2 * vl)#
+#
+# define semantic memory#
+#
+count.obj <- t(sapply(0:15, function(x) as.integer(intToBits(x)))[1:4,])#
+#
+sem.mat <- matrix(NA, ncol = 24, nrow = 16)#
+#
+for (i in 1:16) {#
+  for (j in 1:4) {#
+    sem.mat[i, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]<- cues[count.obj[i,j] + 1, seq(1 + ((j - 1) * 6), 1 + ((j - 1) * 6) + 5, by = 1)]#
+  }#
+}#
+#
+getVec <- function(x, tru, fal) {#
+  if (x) {#
+    return(tru)#
+  } else {#
+    fal#
+  }#
+}#
+#
+sem.array <- apply(count.obj, c(1,2), function(x) getVec(x == 0, neg, pos))#
+sem.mat <- t(apply(sem.array, 2, c))#
+#
+random.context <- replicate(16, cVec(2 * vl))#
+#
+semantic <- cbind(t(random.context), sem.mat)#
+#
+# form memory vectors#
+#
+## for each participant...#
+#
+dat <- read.csv("/Users/jchrszcz/Dropbox/ponyExperiment/exp1/matlaboutput.csv", header = F)#
+names(dat) <- c("subj", "accuracy", "cueChoose", "cue1", "cue2", "cue3", "cue4",#
+  "leftCrit",  "rightCrit", "leftCue1", "leftCue2", "leftCue3", "leftCue4",#
+  "rightCue1", "rightCue2", "rightCue3", "rightCue4", "leftWeighted1",#
+  "leftWeighted2", "leftWeighted3", "leftWeighted4", "rightWeighted1",#
+  "rightWeighted2", "rightWeighted3", "rightWeighted4", "recode1", "recode2",#
+  "recode3", "recode4", "response", "rightOrder", "rt", "weight1", "weight2",#
+  "weight3", "weight4", "reOrder1", "reOrder2", "reOrder3", "reOrder4", "cor.val")#
+#
+createEpi <- function(winner, cues) {#
+  # cue vectors#
+#
+  cue.array <- apply(cues, c(1,2), function(x) getVec(x == 0, neg, pos))#
+  cue.mat <- t(apply(cue.array, 2, c))#
+#
+  # context vectors (what to do about ties?)#
+#
+  con.mat <- sapply(winner, function(x) getVec(x == 0, lose, win))#
+  epi <- cbind(t(con.mat), cue.mat)#
+}#
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- win # cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  if (max(acts) <= A_C) {#
+    return(sample(1:4, 1))#
+  }#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+  return(cue)#
+}
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+hist(unlist(temp))
+oneTrial <- function(subj) {#
+  temp <- dat[dat$subj == subj & dat$cueChoose == 0,]#
+  wins <- ifelse(temp$leftCrit > temp$rightCrit, 1, 0)#
+  episodic <- rbind(createEpi(wins, temp[names(temp) %in% c("leftCue1", "leftCue2", "leftCue3" ,"leftCue4")]), createEpi(abs(-1 * wins), temp[names(temp) %in% c("rightCue1", "rightCue2", "rightCue3" ,"rightCue4")]))#
+#
+  degrade <- matrix(ifelse(runif(prod(dim(episodic))) > L, 0, 1), ncol = ncol(episodic))#
+#
+  episodic <- episodic * degrade#
+#
+  # form undefined probe from episodic#
+#
+  # for each trial at test...#
+#
+  probe <- lose # cVec(2 * vl)#
+  acts <- apply(episodic[, 1:2 * vl], 1, function(x) sum(x * probe) / length(probe))#
+#
+  # get relative activations from semantic#
+#
+  activated <- episodic[acts > A_C,]#
+#
+  if (max(acts) <= A_C) {#
+    return(sample(1:4, 1))#
+  }#
+#
+  i_c <- colSums(t(apply(activated, 1, function(x) x * probe))) / nrow(activated)#
+#
+  semantic.act <- sqrt(apply(semantic, 1, function(x) sum(x * i_c) / length(probe)) ^ 2)#
+#
+  # choose cue relative to activation#
+#
+  mem <- sample(1:16, 1, prob = semantic.act)#
+#
+  i_c.reshape <- matrix(i_c, ncol = 6, byrow = TRUE)#
+  sem.reshape <- matrix(semantic[mem,], ncol = 6, byrow = TRUE)#
+#
+  cue.act <- rowSums(i_c.reshape * sem.reshape) / 6#
+#
+  cue <- which(cue.act[3:6] == max(cue.act[3:6]))#
+  return(cue)#
+}
+temp <- replicate(1000, oneTrial(101))
+hist(unlist(temp))
+source("~/Dropbox/psyc489j_2015/readings/stan_lm.R")
+source("~/Dropbox/psyc489j_2015/reading/stan_lm.R")
+dat <- read.csv("data/ravensdata.csv")
+setwd("/Users/jchrszcz/Dropbox/psyc489j_2015/slides")
+dat <- read.csv("data/ravensdata.csv")
+temp <- stanLM(ravens ~ shape * nfc * rspan * educ, dat, copy.lm = FALSE)
+library(ggplot2)
+qplot(shape, ravens, data = dat)
+qplot(shape, ravens, data = dat) + scale_x_log10()
+temp <- stanLM(ravens ~ shape * nfc * educ, dat, copy.lm = FALSE)

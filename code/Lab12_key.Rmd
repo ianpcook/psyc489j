@@ -1,0 +1,38 @@
+Lab 12
+=====
+
+```{r,cache=TRUE}
+library(rstan)
+data(ChickWeight)
+
+chick_mod <- '
+data {
+  int<lower=0> N;
+  int<lower=0> P;
+  vector[N] y;
+  vector[P] x[N];
+}
+parameters {
+  real mu_b;
+  vector[P] b;
+}
+model {
+  mu_b ~ normal(0.0, 1.0);
+  for (j in 1:P)
+    b ~ normal(mu_b, 100.0);
+  for (i in 1:N)
+    y[i] ~ exponential(1.0/dot_product(x[i], b));
+}
+'
+x <- model.matrix(~ Diet, ChickWeight)
+
+chick_data <- list(
+  y = ChickWeight$weight,
+  x = x,
+  P = ncol(x),
+  N = length(ChickWeight$weight)
+)
+
+fit <- stan(model_code = chick_mod, data = chick_data)
+fit
+```

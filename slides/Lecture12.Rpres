@@ -1,0 +1,230 @@
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+Power Analysis
+========================================================
+author: Jeffrey Chrabaszcz
+date: 21 January 2014
+transition: none
+
+```{r setup,include=FALSE,echo=FALSE}
+library(knitr)
+library(ggplot2)
+library(lme4)
+library(arm)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================
+
+1. Choices in design
+2. Classical power calculations (proportions)
+3. Classical power calculations (continuous)
+4. Multilevel power and clusters
+5. Multilevel power from simulation
+
+Summary: assume 3* things and calculate a 4*th
+
+* - these numbers increase with MLMs
+
+Choices in design
+========================================================
+
+* unit or cluster sampling
+* $\frac{1}{\sqrt{n}}$ vs. $\frac{1}{\sqrt{J}}$
+* ways to increase $n$
+  * gather more unit observations
+  * include more clustered observations
+  * find other studies with comparable conditions
+  * find other studies on related phenomena
+* maximize $\theta$!
+
+Classical power calculations (proportions)
+========================================================
+
+```{r,echo=FALSE,fig.width=12,fig.height=10}
+simFun <- function() {
+  est <- mean(rbinom(96, 1, .6))
+  small.se <- sqrt(est * (1 - est) / 100)
+  large.se <- sqrt(est * (1 - est) / 200)
+  return(c(est = est, small.se = small.se, large.se = large.se))
+}
+
+set.seed(100)
+temp <- as.data.frame(t(replicate(20, simFun())))
+temp$trial <- 1:nrow(temp)
+
+ggplot(temp, aes(trial, est)) +
+  geom_errorbar(aes(ymin = est - small.se, ymax = est + small.se), width = 0, size = 1) +
+  geom_errorbar(aes(ymin = est - large.se, ymax = est + large.se), width = 0, size = 2) +
+  geom_hline(yintercept = .5, color = "firebrick") +
+  theme_classic(base_size = 24) +
+  theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
+  xlab("") +
+  coord_flip()
+```
+
+Classical power calculations (proportions)
+========================================================
+left: 50%
+
+Proportion SE
+
+$\sqrt{\frac{p (1 - p)}{n}}$
+
+Say we want to test against "chance" with assumed $p = .6$
+
+$\sqrt{\frac{.6 * .4}{n}} = \frac{.49}{\sqrt{n}}$
+
+So...
+
+$n \geq 96$
+
+***
+
+But $n = 96$ only gives us 50% power!
+
+$.5 + 1.96 \cdot se = .6 - .84 \cdot se$
+
+Sub and solve for $n$, 80% power occurs when the true value is 2.8 SE from the comparison: 1.96 from the 95% interval, plus .84 to reach the $80^{th}$ %ile
+
+$\therefore n = (\frac{2.8 \cdot 0.49}{n})^2 = 196$
+
+This extends trivially to comparisons of proportions
+========================================================
+
+$s.e. = \sqrt{\frac{p_1(1 - p_1)}{n_1} + \frac{p_2 (1 - p_2)}{n_2}}$
+
+If we assume equal sample sizes, the upper bound becomes $\frac{1}{\sqrt{n}}$
+
+So for a 10% difference...
+
+$n > (\frac{2.8}{0.1})^2 = 784$
+
+Classical power calculations (continuous)
+========================================================
+
+Continuous outcomes work the same way, but necessitate an additional parameter: $\sigma$.
+
+$s.e._{\bar{y}_1 - \bar{y}_2} = \sqrt{\frac{\sigma^2_1}{n_1} + \frac{\sigma^2_2}{n_2}}$
+
+So we can simplify and assume equal $\sigma$ and equal $n$, 80% power is:
+
+$n = \frac{5.6 \cdot \sigma}{\bar{y}_1 - \bar{y}_2}$
+
+Notes on the regression context
+========================================================
+
+Previous comparisons are simple regressions, and generalize to the multiple regression context.
+
+* $SE_\beta \propto \sigma^2_res$
+* adding predictors will decrease residual variance
+
+Power from existing study
+========================================================
+
+Since $SE \propto \frac{1}{\sqrt{n}}$, we can use existing models to generate power analyses for future studies.
+
+Current Study:
+
+$\beta = 0.7, SE_\beta = 1.9, n = 1192$
+
+We would need a $SE_\beta = .035$, so:
+
+$(\frac{1.9}{.035})^2 = 29$
+
+$29 \cdot 1192 = 35,000$
+
+Multilevel power and clusters
+========================================================
+
+standard error of $\bar{y} = \sqrt{\frac{\sigma^2_y}{n} + \frac{\sigma^2_\alpha}{J}}$
+
+Where $J$ is the number of clusters and $n$ is the total sample size.
+Also written as:
+
+standard error of $\bar{y} = \sqrt{\frac{\sigma^2_{total}}{Jm}[1 + (m - 1)ICC]}$
+
+$ICC = \frac{\sigma^2_\alpha}{\sigma^2_\alpha + \sigma^2_y}$
+
+If units within a group are uncorrelated, (ICC = 0), reduces to $\frac{\sigma_{total}}{\sqrt{n}}$
+
+Regression power from simulation
+========================================================
+
+Let's design an experiment to estimate gF.
+We'll use a measure of gF that previous research shows has $\mu = 100$ and $\sigma = 10$.
+Say we want to investigate the effect of a drug on gF, and have reason to believe this miracle drug, modafinial, produces a change of 2 gF.
+
+Function setup
+========================================================
+
+```{r}
+regDat <- function(n) {
+  x <- sample(0:1, n, replace = TRUE)
+  y <- rnorm(n, 100, 10) + x * 2
+  mod <- lm(y ~ x)
+  return(summary(mod)$coef[2,3] > 2)
+}
+
+N <- seq(100, 800, by = 50)
+sims <- sapply(N, function(x) mean(replicate(1000, regDat(x))))
+sims
+```
+
+========================================================
+
+```{r}
+qplot(N, sims) + theme_classic(base_size = 24)
+```
+
+Multilevel power from simulation
+========================================================
+
+```{r}
+fakeDat <- function(J, m) {
+  x <- sample(0:1, J * m, replace = TRUE)
+  person <- rep(1:J, each = m)
+  mu.y <- 100
+  true.effect <- 2
+  sigma.y <- 10
+  sigma.a <- 10
+  sigma.b <- 3
+  ints <- rnorm(J, 0, sigma.a)
+  slopes <- rnorm(J, 0, sigma.b)
+  y <- rnorm(J * m, mu.y, sigma.y) + x * true.effect + ints[person] + slopes[person]
+  return(data.frame(y, x, person))
+}
+```
+
+Multilevel power from simulation
+========================================================
+
+```{r}
+simPower <- function(J, m) {
+  dat <- fakeDat(J, m)
+  mod <- lmer(y ~ x + (1 + x|person), data = dat)
+  return(summary(mod)$coef[2,3] > 2)
+}
+
+inputs <- expand.grid(J = seq(10, 100, by = 10), m = seq(10, 20, by = 2))
+inputs$sims <- apply(inputs, 1, function(x) mean(replicate(100, simPower(x[1], x[2]))))
+```
+
+Multilevel power from simulation
+========================================================
+
+```{r}
+head(inputs)
+```
+
+Multilevel power from simulation
+========================================================
+
+```{r}
+qplot(J, sims, color = m, group = m, geom = c("point", "line"), data = inputs) + theme_classic(base_size = 24)
+```
+

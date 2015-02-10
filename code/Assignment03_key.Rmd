@@ -1,0 +1,45 @@
+Assignment 03
+=====
+
+### Load the juul data in the ISwR package.
+
+```{r}
+library(ISwR)
+library(ggplot2)
+```
+
+### Plot a histogram of IGF-1
+
+```{r}
+qplot(igf1, data = juul)
+```
+
+### Determine the SEM for IGF-1 between males and females in the sample.
+
+```{r}
+m.m <- with(juul, mean(igf1[sex == 1], na.rm = TRUE))
+m.f <- with(juul, mean(igf1[sex == 2], na.rm = TRUE))
+n.m <- with(juul, length(igf1[sex == 1]))
+n.f <- with(juul, length(igf1[sex == 2]))
+v.m <- with(juul, var(igf1[sex == 1], na.rm = TRUE))
+v.f <- with(juul, var(igf1[sex == 2], na.rm = TRUE))
+
+m.sem <- sqrt(v.m/n.m)
+f.sem <- sqrt(v.f/n.f)
+m.sem
+f.sem
+```
+
+### Calculate The 95% confidence interval around difference in IGF-1 for this sample. Does the observed difference fall inside this CI?
+
+```{r}
+m.m-m.f
+sem <- sqrt(v.m/n.m + v.f/n.f)
+0 + c(-2, 2) * sem
+
+# also
+
+(m.m - m.f) + c(-2, 2) * sem
+```
+
+The observed difference of `r m.m-m.f` falls well outside the interval `r 0 + c(-2, 2) * sem`, suggesting that males and females differ in terms of IGF-1 concentration.

@@ -1,0 +1,202 @@
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+Stan for multilevel models
+========================================================
+author: Jeffrey Chrabaszcz
+date: 20 January 2014
+transition: none
+
+```{r setup,include=FALSE,echo=FALSE}
+library(knitr)
+library(foreign)
+library(ggplot2)
+library(arm)
+library(rstan)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================
+
+1. Setting up the model
+2. Average predictive comparisons
+3. Rsq and explained variance
+4. Assessing multilevel impact
+5. Adding a predictor
+6. Multiple comparisons
+
+Setting up the model
+========================================================
+
+```
+data {
+  int<lower=0> N;
+  int<lower=0> J;
+  vector[N] y;
+  vector[N] x;
+  int subj[N];
+}
+```
+
+Setting up the model
+========================================================
+
+```
+parameters {
+  vector[J] a;
+  real b[J];
+  real g_0;
+  real g_1;
+  real<lower=0> sigma_y;
+  real<lower=0> sigma_a;
+  real<lower=0> sigma_b;
+}
+```
+
+Setting up the model
+========================================================
+
+```
+transformed parameters {
+  vector[N] yhat;
+  real ahat;
+  vector[N] e_y;
+  vector[J] e_j;
+  
+  for (n in 1:N)
+    yhat[n] <- a[subj[n]] + b[subj[n]] * x[n];
+  e_y <- y - yhat;
+  
+  ahat <- g_0 + g_1;
+  e_j <- a - ahat;
+}
+```
+
+Setting up the model
+========================================================
+```
+model {
+  for (j in 1:J)
+    a[j] ~ normal(g_0, sigma_a);
+  for (j in 1:J)
+    b[j] ~ normal(g_1, sigma_b);
+  for (n in 1:N)
+    y[n] ~ normal(a[subj[n]] + b[subj[n]] * x[n], sigma_y);
+} 
+```
+
+Model summary
+========================================================
+
+```{r,echo=FALSE,message=FALSE,results='hide'}
+smod <- "
+data {
+  int<lower=0> N;
+  int<lower=0> J;
+  vector[N] y;
+  vector[N] x;
+  int subj[N];
+}
+parameters {
+  vector[J] a;
+  real b[J];
+  real g_0;
+  real g_1;
+  real<lower=0> sigma_y;
+  real<lower=0> sigma_a;
+  real<lower=0> sigma_b;
+}
+transformed parameters {
+  vector[N] yhat;
+  real ahat;
+  vector[N] e_y;
+  vector[J] e_j;
+  
+  for (n in 1:N)
+    yhat[n] <- a[subj[n]] + b[subj[n]] * x[n];
+  e_y <- y - yhat;
+  
+  ahat <- g_0 + g_1;
+  e_j <- a - ahat;
+}
+model {
+  for (j in 1:J)
+    a[j] ~ normal(g_0, sigma_a);
+  for (j in 1:J)
+    b[j] ~ normal(g_1, sigma_b);
+  y ~ normal(yhat, sigma_y);
+} 
+"
+
+sdat <- list(y = sleepstudy$Reaction,
+             x = sleepstudy$Days,
+             N = nrow(sleepstudy),
+             J = length(levels(sleepstudy$Subject)),
+             subj = unclass(sleepstudy$Subject))
+
+sfit <- stan(model_code = smod, data = sdat, chains = 2, iter = 500, refresh = -1)
+```
+
+```{r,echo=FALSE}
+print(sfit, pars = c("g_0", "g_1", "sigma_y", "sigma_a", "sigma_b"), probs = c(.025, .975))
+```
+
+Model summary
+========================================================
+
+```{r}
+display(lmer(Reaction ~ Days + (1 + Days | Subject), data = sleepstudy))
+```
+
+Fixed and random effects
+========================================================
+
+1. Fixed effects are constant across individuals, and random effects vary.
+2. Effects are fixed if they are interesting in themselves or random if there is interest in the underlying population.
+3. When a sample exhausts the population, the corresponding variable is fixed.
+4. If an effect is assumed to be a realized value of a random variable, it is called a random effect.
+5. Fixed effects are estimated using least squares (or, more generally, maximum likelihood) and random effects are estimated with shrinkage.
+
+
+Finite- and super-populations
+========================================================
+
+* just a rearrangement of the error terms
+* are you sampling from 50 states or 50 random people?
+* no change with parameter estimation, but changes how you make predictions
+
+Average predictive comparisons
+========================================================
+
+Coefficient interpretations in MLMs can be more complicated.
+Taking the average predicted difference for a change is often a better summary than simply reading the estimates.
+
+$$
+\begin{array}{rcl}
+
+b_u(u^{(lo)}, u^{(hi)}, v, \theta) &=& \frac{E(y | u^{(hi)}, v, \theta) - E(y | u^{(lo)}, v, \theta)}{u^{(hi)} - u^{(lo)}} \\
+
+B_u (u^{(lo)}, u^{(hi)}, v, \theta) &=& \frac{1}{n} \sum_{i = 1}^n b_u(u^{(lo)}, u^{(hi)}, v, \theta)
+
+\end{array}
+$$
+
+Assessing multilevel impact
+========================================================
+
+Pooling factor is bound between 0 and 1, describes the amount of shrinkage for hierarchical parameters.
+
+$$
+\begin{array}{rcl}
+
+\hat{\alpha}_j^{multilevel} &=& \omega_j\mu_{\alpha} + (1 - \omega_j)\bar{y}_j \\
+
+\omega_j &=& 1 - \frac{\sigma^2_{\alpha}}{\sigma^2_{\alpha} + \sigma^2_y/n_j} \\
+
+pooling factor \lambda_j &=& \frac{(SE \epsilon_j)^2}{\sigma^2_{\alpha}}
+
+\end{array}
+$$

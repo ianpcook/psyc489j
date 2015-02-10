@@ -1,0 +1,51 @@
+Assignment 7
+=====
+
+1. We rely on the central limit theorem for bootstrap sampling. Explain in your own words:
+  * How bootstrap sampling works based on the central limit theorem, and;
+  * Why this method differs from NHST multiple regression.
+2. Choose some dataset we've worked with and:
+  * Fit a reasonable linear model of the data. Briefly defend your choice of model. 
+  * Bootstrap coefficient estimates for this model of the data.
+  * Compute the Coef. SE for the bootstrap and lm estimates of your model. Do they deviate in any way?
+
+Section 1
+-----
+
+```
+The CLT essentially says that as the number of samples increases, you increase your probability of converging on the population value that the sample is approximating. Bootstrap sampling treats the sort of population and increases the number of samples for it, converging on the sample properties and ideally yielding a more accurate inference about the true population. We can do this because we know the Xy pairs in the sample are valid, but that inclusion of those specific pairs is randomly determined. If inclusion of those pairs isn't random and those Xy pairs differ in some systematic way, we can't assume that we have valid measures of the population of interest. Unlike in MR, which assumes some distributional properties based on summaries of the data, (mean and variance, covariance), bootstrapping creates and empirical distributions around the parameters of interest. For example, while in multiple regression we calculate a coefficient SE to determine signifiance, in a bootstrapped linear model we simple look at the distribution of calculated coefficients.
+```
+
+Section 2
+-----
+
+```{r}
+library(ISwR)
+library(arm)
+data(malaria)
+fit <- glm(mal ~ ab * age, data = malaria, family = binomial)
+display(fit)
+```
+
+This is done to show the glm model of malaria using ab, age, and the interaction between ab and age.
+I'm including this for comparison, and because I'm going to use it to get the number of coefficients to prespecify my output.
+
+```{r,warning=FALSE}
+n <- length(coef(fit))
+reps <- 10000
+out <- matrix(NA, ncol = n, nrow = reps)
+for (i in 1:reps) {
+  new.data <- malaria[sample(nrow(malaria), nrow(malaria), replace = TRUE),]
+  temp <- glm(mal ~ ab * age, data = new.data, family = binomial)
+  out[i,] <- coef(temp)
+}
+apply(out, 2, quantile, probs = c(.025, .975))
+```
+
+We can also get standard errors.
+
+```{r}
+apply(out, 2, FUN = function(x) sd(x)/nrow(malaria))
+```
+
+Bootstrapped errors tend to be smaller. Because of the resampling process, we're almost alwasy computering SD that is smaller than the SD of the sample.

@@ -1,0 +1,72 @@
+Lab 3
+=====
+
+1.Use **pnorm** function to show that:
+  * roughly 5% of the normal distribution is contained two standard deviations below the mean.
+  * 68% of the normal distribution falls between one standard deviation above and below the mean.
+2. Use **rnorm** to generate a vector of 20 samples for the normal distribution with mean of 10 and standard deviation of 2. Then:
+  * Calculate the mean and standard deviation of this vector. Why are they not exactly 10 and 2, respecitvely?
+  * Pretend that these are 10 samples from a population with an expected mean of 8. Would we reject the null hypothesis that your observed mean came from a population with mean of 8?
+3. A t value can be calculated by taking a difference in means and dividing by the quantity $\frac{\sigma}{\sqrt(n)}$.
+  * read in the data from lab03data.csv.
+  * calculate a t value for the scores in those data, assuming that they were drawn from a population with mean 0.
+  * Use the pt() function to determine how much of the t distribution lies beyond your observed score, (this is a t-test, after all).
+  * use the t.test() function to check your work. Were you correct?
+  * Plot a histogram of the data. Add a red, vertical line at 0 to denote our expected mean using geom_vline().
+
+Section 1
+-----
+
+First section fixed to 2.5% below mean minus 2SD.
+
+```{r}
+pnorm(-2)
+diff(pnorm(c(-1, 1)))
+```
+
+These are both exact values of area under curve for specific ranges. We say that approximately 2.5% of the distribution falls below -2 standard deviatiosn and approximately 68% of the distribution falls between +/- 1 SD.
+
+Section 2
+-----
+
+```{r}
+samples <- rnorm(20, mean = 10, sd = 2)
+mean(samples)
+sd(samples)
+```
+
+These are random samples from the specified distribution, so the calculated mean and standard deviation are only expected to equal the specified mean and sd when n = infinity.
+
+Next part is fixed to be 20, rather than 10, samples.
+
+```{r}
+t.test(samples, mu = 8)
+
+# or
+
+t.val <- (mean(samples) - 8)/(sd(samples)/sqrt(length(samples)))
+t.val
+
+# or
+
+8 + c(-2, 2) * (sd(samples)/sqrt(length(samples)))
+```
+
+This was based on a random sample, so this answer could vary, but genereally if t > 2, we can consider the test significant and reject the null.
+
+Section 3
+-----
+
+```{r}
+df <- read.csv("students/labs/lab03data.csv")
+t.val <- mean(df$scores)/(sd(df$scores)/sqrt(length(df$scores)))
+2 * (1 - pt(t.val, length(df$scores) - 1))
+t.test(df$scores)
+```
+
+Our test is two-tailed, so we say that the probability that a score that extreme or higher is observed given the null hypothesis is a mere two tenths of a percent and reject the null that our sample was drawn from a population with mean of 0.
+
+```{r}
+library(ggplot2)
+qplot(scores, data = df, geom = "histogram") + geom_vline(xintercept = 0, color = "red")
+```

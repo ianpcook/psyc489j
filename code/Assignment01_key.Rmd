@@ -1,0 +1,9 @@
+Jeffrey Chrabaszcz
+=====
+
+```{r}
+my.vector <- c("apples", "bananas", "pirates")
+my.matrix <- matrix(1:100, ncol = 10)
+my.vector
+my.matrix
+```

@@ -1,0 +1,44 @@
+Lab 7
+=====
+
+1. Use the R.matlab package to load permExData.mat
+2. These data load as a list including two variables. Munge the data into a data.frame in which one column reflects the values in two vectors in the original list and another column reflects which list the data came from.
+3. Plot a histogram of the data. Pay specific attention to binwidth. Can you see evidence that these are latencies measured in hours?
+4. Perform a t test. Does latency differ between the groups?
+5. These data are strongly non-gaussian. Perform a permutation test. Does your inference change?
+
+```{r,warning=FALSE,message=FALSE}
+library(R.matlab)
+library(reshape2)
+library(ggplot2)
+dat <- readMat("~/Dropbox/statistics/students/labs/permExData.mat")
+df <- melt(dat)
+df$L1 <- factor(df$L1)
+qplot(value, data = df, binwidth = .5) + ylim(c(0, 100))
+```
+
+```
+With a small binwidth, especially when limiting the extent of the y-axis, it is easy to see periodicity in the data such that measurements are centered on 24-hour intervals.
+```
+
+```{r}
+t.out <- t.test(value ~ L1, data = df)
+t.out
+```
+
+```
+The latency does not differ between groups, though the t-value is quite high.
+```
+
+```{r}
+permTest <- function(df) {
+  df$L1 <- sample(df$L1)
+  return(t.test(value ~ L1, data = df)$statistic)
+}
+t.null <- replicate(10000, permTest(df))
+sum(abs(t.null) > abs(t.out$statistic))/10000
+```
+
+```
+With sufficient samples, the permutation test shows that the probability of observing a larger value by chance is less than .05, suggesting a difference in group means.
+```

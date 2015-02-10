@@ -1,0 +1,24 @@
+Assignment 02
+=====
+
+Create a scatterplot relating age and igf-1. Would you draw any conclusions about the relationship between age and igf-1 based on this graph? Explain your answer.
+
+```{r,warning=FALSE}
+library(ggplot2)
+library(ISwR)
+data(juul)
+qplot(age, igf1, data = juul)
+
+# or ggplot(juul, aes(age, igf1)) + geom_point()
+```
+
+#### IGF-1 seems to have a strong increase during adolesence, then drop off immediately and decrease slowly over the lifespan.
+
+Recode sex as a factor. Create boxplots relating IGF-1 to sex.
+
+```{r}
+juul$sex2 <- factor(juul$sex)
+qplot(sex2, igf1, data = juul, geom = "boxplot")
+
+# or qplot(factor(sex), igf1, data = juul)
+```

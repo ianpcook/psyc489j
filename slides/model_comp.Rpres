@@ -1,0 +1,110 @@
+Model validation
+========================================================
+author: Jeffrey Chrabaszcz
+date: 14 January 2014
+transition: none
+
+```{r setup, include=FALSE, echo=FALSE}
+require(knitr)
+library(arm)
+require(ggplot2)
+library(dplyr)
+library(rstan)
+library(reshape2)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Model 1
+=====
+
+```{r}
+dat <- read.csv("data/ravensdata.csv")
+mod1 <-lm(ravens ~ nfc + rspan + log(shape) + educ, data=dat[-36,])
+display(mod1)
+```
+
+Model 2
+=====
+
+```{r}
+mod2 <- lm(ravens ~ educ + shape + nfc + rspan + rspan:shape + educ:shape, data = dat)
+display(mod2)
+```
+
+Creating a hold-out sample
+=====
+
+Last week I ran some code like this:
+
+```
+selector <- sample(1:nrow(dat), round(nrow(dat))/10)
+```
+
+```{r}
+hout <- read.csv("data/rnrsedata.csv")
+summary(dat)
+summary(hout)
+```
+
+Using base R
+=====
+
+```{r}
+g1 <- predict(mod1, hout)
+g2 <- predict(mod2, hout)
+
+result <- data.frame(y = rep(hout$ravens, 2),
+                     yhat = c(g1, g2),
+                     group = factor(rep(1:2, each = length(g1))))
+group_by(result, group) %>% summarise(rsd = sd(y - yhat))
+```
+
+=====
+
+```{r,echo=FALSE,fig.width=10,fig.height=10}
+ggplot(result, aes(yhat, y, color = group)) +
+  geom_point(size = 3) +
+  theme_bw(base_size = 24)
+```
+
+Another model
+=====
+
+```
+model {
+  mu_b ~ double_exponential(0.0, 1.0);
+  b ~ normal(mu_b, K/4.0);
+  for (n in 1:N)
+    y[n] ~ ordered_logistic(x[n] * b, c);
+}
+```
+
+=====
+
+```{r}
+load("data/mod.RData")
+
+mod <- melt(as.array(jeff)) %>%
+  group_by(parameters) %>%
+  summarise(est = mean(value))
+
+x <- model.matrix(~ shape * nfc, hout)
+yhat <- cut(apply(x, 1, function(x) sum(x * mod$est[1:4])), mod$est[6:21], include.lowest = TRUE, labels = FALSE)
+sd(hout$ravens - yhat)
+```
+
+BONUS: Plotting continuous interactions
+=====
+
+```{r}
+dat$nfc.split <- factor(cut(dat$nfc, quantile(dat$nfc, probs = c(0, .33, .66, 1)), include.lowest = TRUE, labels = FALSE), labels = c("low", "med", "hi"))
+p <- ggplot(dat, aes(shape, ravens)) + geom_point() + geom_smooth(method = "lm") + facet_wrap(~nfc.split)
+```
+
+=====
+
+```{r,echo=FALSE,fig.width=12,fig.height=7}
+p
+```
+

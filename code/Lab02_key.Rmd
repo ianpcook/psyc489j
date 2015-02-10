@@ -1,0 +1,58 @@
+Lab 2
+=====
+
+1. Install and load the `ISwR` package.
+2. Use the **data** function to load the **juul** dataset.
+3. **NA** is an abbreviation for a missing value. Look at a summary of **juul** and examine the description of the **juul** data using `?juul`. Why is the **menarche** variable missing 635 entries? This is a good time to note that adding `na.rm = TRUE` will cause most functions to ignore missing values. For example:
+
+```{r}
+x <- c(1:10, NA)
+mean(x)
+mean(x, na.rm = TRUE)
+```
+
+4. The > symbol tests whether one quantity is larger than another one, returning 0 for FALSE and 1 for TRUE. For example, 100 > 5 will return TRUE, which 100 > 100 will return FALSE. Using this information, figure out how many children in the **juul** dataset have entered puberty, (Have a tanner score of more than 1).
+5. Using the two following pieces of information, find the **mean** of **igf1** for each sex in the dataset.
+  * Two equal signs together, ==, is a logical test for whether two things are equal.
+  * Indexing a vector with a vector of 1's and 0's, (or TRUEs and FALSEs), will only return the indices of that vector for which the index vector is 1 or TRUE.
+
+Question 1
+-----
+
+```{r}
+library(ISwR)
+```
+
+Question 2
+-----
+
+```{r}
+data(juul)
+# ?juul
+```
+
+Question 3
+-----
+
+"menarche" is a logical variable referring to whether or not an individual has experienced the first menstrual cycle. Genetically male humans never experience this and have missing values for the **menarche** variable.
+
+```{r}
+with(juul, xtabs(~ menarche + sex))
+```
+
+Question 4
+-----
+
+```{r}
+sum(juul$tanner > 1, na.rm = TRUE)
+```
+
+Question 5
+-----
+
+```{r}
+with(juul, mean(igf1[sex == 1], na.rm = TRUE))
+with(juul, mean(igf1[sex == 2], na.rm = TRUE))
+# or
+with(juul, tapply(igf1, sex, mean, na.rm = TRUE))
+```

@@ -1,0 +1,65 @@
+Lab 11
+=====
+
+```{r}
+library(rstan)
+l_mod <- '
+parameters {
+  real mu;
+}
+model {
+  mu ~ normal(0, 1);
+}
+'
+fit <- stan(model_code = l_mod)
+```
+
+1. Describe the function of the preceding code.
+2. How could you replicate this functionality using functions in R?
+3. Attempt to generate a posterior distribution for some arbitrary prior and a normal likelihood function with the following observations: 45, 18, 23, 1, 19.
+
+Question 1
+-----
+
+That code asks stan to sample a single parameter, $\mu$, from a normal distribution with a mean of 0 and a variance of 1
+
+Question 2
+-----
+
+```{r,eval=FALSE}
+out <- rnorm(1000)
+```
+
+Question 3
+-----
+
+The following code generates a posterior distribution for the mean and variance of the population normal distribution conditioned on our priors and our data.
+In this model, our data are comprised of the five samples we "sampled."
+We have chosen a relatively uninformed prior for our $\mu$ parameter - we say that it can only vary between the extreme possible scores of the test 0 and 100, but that all means in that range are equally likely.
+We specified a prior for our $\sigma$ parameter that suggests large variances are unlikely.
+This will give us a narrower estimate of the mean than a less-informed prior, but could also make us overconfident about the $\mu$ parameter.
+
+```{r}
+
+library(rstan)
+mod_code <- '
+data {
+  int<lower=0> N;
+  vector[N] y;
+}
+parameters {
+  real mu;
+  real<lower=0> sigma;
+}
+model {
+  y ~ normal(mu, sigma);
+  mu ~ uniform(0, 100);
+  sigma ~ exponential(1.0/1000.0);
+}
+'
+
+mod_dat <- list(y = c(45, 18, 23, 1, 19), N = 5)
+
+fit <- stan(model_code = mod_code, data = mod_dat)
+fit
+```

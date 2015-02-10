@@ -1,0 +1,22 @@
+Assignment 6
+=====
+
+1. Load the malaria dataset in the ISwR package.
+2. Predict risk of malaria using age and antibody status.
+3. Interpret the coefficients.
+4. Generate a reasonable plot for this model.
+
+```{r,message=FALSE}
+library(ISwR)
+library(arm)
+data(malaria)
+fit <- glm(mal ~ log(ab), data = malaria, family = binomial)
+display(fit, digits = 3)
+```
+
+We can see that log(ab) is a "significant" predictor of malaria, such that higher antibody count predicts a lower probability of having malaria. Specifically, we say that the odds ratio associated with a 1% change in antibody count, (as we've taken the log), is exp(coefficient of log(ab)), or `r exp(coef(fit)[2])`. We can also say that the maximum change in probability associated with proportional change in ab is `r coef(fit)[2]/4`.
+
+```{r}
+library(ggplot2)
+ggplot(malaria, aes(ab, mal)) + geom_jitter(position = position_jitter(height = .2)) + geom_smooth(method = "glm", family = "binomial") + scale_x_log10()
+```

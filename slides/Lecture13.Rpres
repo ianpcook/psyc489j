@@ -1,0 +1,148 @@
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+Decision Analysis
+========================================================
+author: Jeffrey Chrabaszcz
+date: 22 January 2014
+transition: none
+
+```{r setup,include=FALSE,echo=FALSE}
+require(knitr)
+require(ggplot2)
+library(arm)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================
+
+1. Medical decision making
+2. Should I test/remediate for radon?
+
+Medical setup
+========================================================
+
+A 95-year-old man with a possibly-malignant tumor must decide on treatment.
+We assume...
+
+* 90% chance the tumor is malignent
+* Without cancer, life expectancy is 34.8 months
+* With cancer...
+  * and radiation, 16.7 months
+  * and surgery, 35% chance of surgical death, hen 20.3 months
+  * and no treatment, 5.6 months.
+
+Quality adjustmnet
+========================================================
+
+Despite many ideas on how to adjust for quality of life, we'll just knock off a month for any treatment option (because both are sure to be unpleasant at the time).
+
+* With radiation: $.9 * 16.7 + .1 * 34.8 - 1 = 17.5$
+* With surgery: $.35 * 0 + .65 * (.9 * 20.3 + .1 * 34.8 - 1) = 13.5$
+* With no treatment: $.9 * 5.6 + .1 * 34.8 = 8.5$
+
+Adding another decision point
+========================================================
+
+Now let's make all of this contingent on a bronchoscopy.
+This is a diagnostic test with 70% sensitivity and 98% specificity.
+The scope procedure also has about a 5% chance of killing a 95-year-old.
+
+Pr(Cancer | T) = Pr(T | Cancer) * Pr(Cancer) / ...
+
+We can drop in the conditional probability in place of the 90% base rate for cancer on the last slide.
+
+After the test
+========================================================
+left: 50%
+
+Positive test:
+
+* Radiation: 15.8 months
+* Surgery: 12.7 months
+* No treatment: 5.7 months
+
+***
+
+Negative test:
+
+* Radiation: 20.5 months
+* Surgery: 15.1 months
+* No treatment: 13.4 months
+
+Don't get the bronchoscopy!
+========================================================
+
+The bronchoscopy doesn't change our decision in any way, it just adds a flat 5% chance of immediate death.
+We could still work out the QAL values for the bronchoscopy.
+
+* Positive test
+  * Pr(outcome) = $.9 * .7 + .1 * .02 = .632$
+  * Value = $.95 * 15.8 = 15$ months
+* Negative test
+  * Pr(Outcome) = $.9 * .3 + .1 * .98 = .368$
+  * Value = $.95 * 20.5 = 19.5$ months
+
+Radon
+========================================================
+
+Radon is bad, but 80% of houses have living area concentrations of < 2pCi/L.
+90% are less than 3 pCi/L.
+
+Individual decision problem:
+
+* Remediate without monitoring: $2000, reduce exposure to 2 pCi/L
+* Do nothing, accept current exposure
+* $50 for long-term measurement, base decision on outcome
+
+Decision making under uncertainty
+========================================================
+
+Let's assume high radon in a home.
+We need to define some terms:
+
+1. $D_d$, dollar value of a $10^{-6}$ reduction is cancer death risk
+2. $D_r$, dollar value of 1 pCi/L reduction in radon exposure
+3. $R_{action}$, level above which remediation is required
+
+$$
+R_{action} = \frac{\$2000}{D_r} + R_{remed}
+$$
+
+For reference: the US, England, Sweden, and Canada recommend $R_{action}$ levels of 4, 5, 10, and 20 pCi/L.
+
+More information
+========================================================
+
+We have slightly more information than we've already listed.
+At least two studies already exist to predict the distribution of radon across the US: a smaller study of high-accuracy measurements and a larger sample of less-accurate measurements.
+
+We'll build a MLM with:
+
+* an indicator for whether the measurement is in the basement
+* an indicator for which measurement method was used
+* nesting (error terms) for geologic types and counties
+
+Loss functions
+========================================================
+
+We say our prediction of radon level given our model is $\theta_i \sim N(M_i, S_i^2)$.
+
+Remediate without monitoring:
+
+$$
+L_1 = 2000 + D_r \cdot [R_{remed} \phi\frac{M - log(R_{remed})}{S} + \\
+e ^ {M + \frac{1}{2} s^2}(1 - \phi{\frac{M + S^2 - log(R_{remed})}{S}})]
+$$
+
+$$
+L_2 = D_r e^{M + \frac{1}{2} S^2} 
+$$
+
+Loss functions
+========================================================
+
+Bah.

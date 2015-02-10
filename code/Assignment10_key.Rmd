@@ -1,0 +1,28 @@
+Assignment 10
+=====
+
+1. Load the sleep data.
+2. Run a t.test on the sleep data using two vectors of outcome values as input, (you will likely need to use the as.character or unclass functions).
+3. Either:
+  * fit a BESTmcmc model to the sleep data to see if the difference groups differ based on the amount of extra sleep they got; or,
+  * Demonstrate the appropriate syntax to run a BESTmcmc model and load the model from the sleep.RData file in the "models" folder.
+4. Take a summary of the model object and interpret each of the parameters. Does extra sleep seem to vary in any way based on group?
+
+```{r}
+library(BEST)
+data(sleep)
+with(sleep, t.test(extra[group == 1], extra[group == 2]))
+#with(sleep, BESTmcmc(extra[group == 1], extra[group == 2]))
+load("~/Dropbox/statistics/students/models/sleep.Rdata")
+summary(sleep.object)
+```
+
+```
+muDiff - Our best guess for the difference between groups is about 2 hours, but the 95% HDI includes zero, suggesting either that we need more information to conclude that the groups differ on average sleep or that the groups are roughly equivalent in terms of extra sleep.
+
+sigmaDiff - Our best guess for the difference in standard deviations is nearly zero, with the 95% HDI extending to roughly +/- 2. We say there is no reliable difference between SDs for our two groups.
+
+nu - With a nu of 36, we say our data are effectively normal.
+
+effSz - Our effect size is on average "large" according to the Cohen orthodoxy, but unreliable. This is perhaps our best argument that our sample size is insufficient for the effect of interest.
+```

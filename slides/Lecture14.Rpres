@@ -1,0 +1,20 @@
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+Posterior Predictive Checks & Missing data
+========================================================
+author: Jeffrey Chrabaszcz
+date: 23 January 2014
+transition: none
+
+```{r setup,include=FALSE,echo=FALSE}
+require(knitr)
+require(ggplot2)
+library(arm)
+opts_chunk$set(include=TRUE,cache=TRUE,fig.align='center')
+options(digits = 3)
+```
+
+Outline
+========================================================

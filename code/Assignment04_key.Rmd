@@ -1,0 +1,18 @@
+Assignment 04
+=====
+
+1. Load the diamonds dataset from the ggplot2 package.
+2. Model price as a function of carat.
+3. Describe the coefficients in plain language. Does the intercept make sense? Is carat a good indicator of price?
+
+```{r,message=FALSE,warning=FALSE}
+library(arm)
+library(ggplot2)
+data(diamonds)
+fit1 <- lm(price ~ carat, data = diamonds)
+display(fit1)
+```
+
+The intercept represents the expected price of a diamond when it has zero weight. Not only is this nonsense, but it reminds us that we can only expect linear trends over the observed range. This is particularly troubling because the coefficient stanrdard error is very low compared to the actual coefficient intercept coefficient, so we might carelessly accept that this term is credible and different from zero.
+
+There coefficient for carat is quite high, (`r coef(fit)[2]`), suggesting that we should increase our predicted price of a diamond for each increase in carat. This effect appears to be reliable. Our residual sd suggests that our estimates should be off an average of $1,549 for any given diamond for which we predict the price.

@@ -1,0 +1,594 @@
+a[b]
+b[a]
+pi
+source("/Users/jchrszcz/Dropbox/learnr/gemm_tests/asymptotic_se_test.R")
+x <- rnorm(10)
+source("/Users/jchrszcz/Dropbox/learnr/gemm_tests/asymptotic_se_test.R")
+y <- rnorm(10)
+source("/Users/jchrszcz/Dropbox/learnr/gemm_tests/asymptotic_se_test.R")
+library(gemmR)
+data(culture)
+summary(culture)
+temp <- gemm(murder.rate ~ pasture + gini + gnp, data = culture)
+temp
+temp$tau
+apply(model.matrix(~ pasture + gini + gnp, data = culture), 2, function(x) cor(x, culture$murder.rate, method = "kendall"))
+apply(model.matrix(~ -1 + pasture + gini + gnp, data = culture), 2, function(x) cor(x, culture$murder.rate, method = "kendall"))
+betaSE <- function(x, resid, y, n) {#
+  tau <- cor(y, x, method = "kendall")#
+  return((pi^2 * tau * var(resid))/(9 * (n - 1) * var(x)))#
+}
+residuals(temp)
+sapply(model.matrix(~ -1 + pasture + gini + gnp, data = culture), function(x) betaSE, residuals(temp), temp$model$murder.rate, nrow(temp$model))
+debug(betaSE)
+sapply(model.matrix(~ -1 + pasture + gini + gnp, data = culture), function(x) betaSE, residuals(temp), temp$model$murder.rate, nrow(temp$model))
+apply(model.matrix(~ -1 + pasture + gini + gnp, data = culture), 1, function(x) betaSE, residuals(temp), temp$model$murder.rate, nrow(temp$model))
+summary(model.matrix(~ -1 + pasture + gini + gnp, data = culture))
+apply(model.matrix(~ -1 + pasture + gini + gnp, data = culture), 2, function(x) betaSE, residuals(temp), temp$model$murder.rate, nrow(temp$model))
+apply(as.matrix(model.matrix(~ -1 + pasture + gini + gnp, data = culture)), 2, function(x) betaSE, residuals(temp), temp$model$murder.rate, nrow(temp$model))
+str(culture)
+betaSE(culture$gini, residuals(temp), culture$murder.rate, nrow(culture))
+Q
+betaSE(culture$gini, residuals(temp), culture$murder.rate, nrow(culture))
+Q
+undebug(betaSE)
+betaSE(culture$gini, residuals(temp), culture$murder.rate, nrow(culture))
+temp
+load("~/Dropbox/learnr/gemm_tests/meth_sims_gemmSE.RData")
+ls()
+str(gemm.se)
+library(reshape2)
+tmp <- melt(gemm.se)
+summary(tmp)
+betaSE(culture$gnp, residuals(temp), culture$murder.rate, nrow(culture))
+KENtau = function(x, y) {w = fxyrk(x, y)#
+n = length(x); n1 = n-1#
+rky = w[, 1]; rky2 = w[, 2]#
+dy = 0; dy2 = 0#
+for(i in 1:n1) {i1 = i+1#
+dy = dy+sum(rky[i]<rky[i1:n])#
+dy2 = dy2+sum(rky2[i]<rky2[i1:n])}#
+KT = ((dy+dy2)/choose(n, 2))-1#
+KT}
+??uniroot
+g = function(b) {#
+s = uniroot(fslp, c(l, u), x = sort(y1), y = sort(y1-XM%*%b))$root#
+return(s)}
+fslp = function(b, x, y) f(x, y-b*x) # solve for b in this function#
+slp = uniroot(fslp, c(l, u), x = x1, y = y1)$root # the slope of the regression#
+int = median(y1-slp*x1) # the intercept of the regression
+fslp = function(b, x, y) f(x, y-b*x) # solve for b in this function
+KENtau = function(x, y) {w = fxyrk(x, y)#
+n = length(x); n1 = n-1#
+rky = w[, 1]; rky2 = w[, 2]#
+dy = 0; dy2 = 0#
+for(i in 1:n1) {i1 = i+1#
+dy = dy+sum(rky[i]<rky[i1:n])#
+dy2 = dy2+sum(rky2[i]<rky2[i1:n])}#
+KT = ((dy+dy2)/choose(n, 2))-1#
+KT}
+f = KENtau
+fslp = function(b, x, y) f(x, y-b*x) # solve for b in this function
+y <- x + rnorm(10)
+x
+y
+slp = uniroot(fslp, c(l, u), x = x1, y = y1)$root # the slope of the regression
+?uniroot
+l <- -100
+u <- 100
+slp = uniroot(fslp, c(l, u), x = x1, y = y1)$root # the slope of the regression
+x1 <- x
+y1 <- y
+slp = uniroot(fslp, c(l, u), x = x1, y = y1)$root # the slope of the regression
+int = median(y1-slp*x1) # the intercept of the regression
+slp
+int
+gemm(y ~ x)
+sample(6,1)
+24000/38
+22400/38
+300000/38
+2500*38
+38*2500
+2500*37
+86000/38
+2466.69-2263.16
+RMANOVA_normSUB_Rlayout <- read.csv("~/Dropbox/RMANOVA_normSUB_Rlayout.csv")
+RMANOVA_normSUB_Rlayout <- read.csv("~/Downloads/RMANOVA_normSUB_Rlayout.csv")
+library(bear)#
+library(ggplot2)#
+library(heplots)#
+library(lsr)#
+library(psych)#
+library(moments)
+etasq(aov.HR)
+??etasq
+aov.HR <- aov(HR ~ GenderNum*Arousal*Valence + Error(Subject.Number/(Arousal*Valence)) + GenderNum, data=dat)
+dat = RMANOVA_normSUB_Rlayout
+aov.HR <- aov(HR ~ GenderNum*Arousal*Valence + Error(Subject.Number/(Arousal*Valence)) + GenderNum, data=dat)
+summary(aov.HR)
+describeBy(dat$HR,list(dat$quadlab,dat$Gender))
+describeBy(dat$HR,list(dat$quadlab))
+etasq(aov.HR)
+etaSq(aov.HR)
+etasq(aov.HR)
+anova(aov.hr)
+sumamry(aov.hr)
+summary(aov.hr)
+summary(aov.HR)
+anova(aov.HR)
+summary(dat)
+summary(aov.HR)
+install.packages("bear")
+library(bear)
+about.bear()
+?etasq
+??etasq
+install.packages("heplots")
+install.packages("lsr")
+install.packages("moments")
+library(bear)
+library(bear)#
+library(ggplot2)#
+library(heplots)#
+library(lsr)#
+library(psych)#
+library(moments)
+?etasq
+etasq(aov.HR)
+?etasq
+library(car)
+aov.HR <- aov(HR ~ GenderNum*Arousal*Valence + Error(Subject.Number/(Arousal*Valence)) + GenderNum, data=dat)
+aov.HR <- Anova(HR ~ GenderNum*Arousal*Valence + Error(Subject.Number/(Arousal*Valence)) + GenderNum, data=dat)
+summary(dat)
+?etasq
+aov.HR <- aov(HR ~ GenderNum*Arousal*Valence + Error(Subject.Number/(Arousal*Valence)) + GenderNum, data=dat)
+Anova(aov.HR)
+?lsr
+etaSquared(aov.HR, nova = TRUE)
+etaSquared(aov.HR, anova = TRUE)
+etaSquared(aov.HR)
+library(car)
+source('http://mc-stan.org/rstan/install.R', echo = TRUE, max.deparse.length = 2000)#
+install_rstan()
+library("dplyr")
+library(knitr)
+library(tidyr)
+fxyrk = function(x, y) {n = length(x)#
+# most positive computation#
+xt = x[order(y, x)] # x order by y with y ties ordered by x#
+rky = 1:n#
+rky1 = rky[order(xt, rky)] # ranks of y ordered by x#
+# most negative computation#
+xrr = n+1-rank(x) # reverse ranks on the x#
+xt = x[order(y, xrr)] # x ordered by y with y ties ordered by rev(x)#
+rky2 = order(xt, n:1) # ranks of y ordered by x with y ties ordered by rev(y)#
+w = matrix(c(rky1, rky2), n, 2, byrow = FALSE)}#
+# FIRST GDCC#
+GDave = function(x, y) {w = fxyrk(x, y)#
+n = length(w[, 1]); n1 = n-1; k = 1; cc = NULL#
+if(sum(abs(w[, 1]-w[, 2])) == 0) nave = 1 else nave = 2#
+while(k <= nave) {rky = w[, k]#
+ryr = n+1-rky#
+dy = NULL; dyn = NULL#
+for (i in 1:n1) {#
+dy = c(dy, sum(rky[1:i]-i>0))#
+dyn = c(dyn, sum(ryr[1:i]-i>0))}#
+mdyr = max(dyn)#
+mdy = max(dy)#
+cc[k] = (mdyr-mdy)/(n%/%2)#
+cc[2] = cc[k]#
+k = k+1}#
+GDcor = (cc[1]+cc[2])/2#
+GDcor}#
+# SECOND Kendall’s Tau#
+KENtau = function(x, y) {w = fxyrk(x, y)#
+n = length(x); n1 = n-1#
+rky = w[, 1]; rky2 = w[, 2]#
+dy = 0; dy2 = 0#
+for(i in 1:n1) {i1 = i+1#
+dy = dy+sum(rky[i]<rky[i1:n])#
+dy2 = dy2+sum(rky2[i]<rky2[i1:n])}#
+KT = ((dy+dy2)/choose(n, 2))-1#
+KT}#
+# THIRD Gini or Modified Footrule#
+Gini = function(x, y) {w = fxyrk(x, y)#
+n = length(x); ident = 1:n#
+rky = w[, 1]; rky2 = w[, 2]#
+dpnc = sum(abs(n+1-rky-ident))#
+dppc = sum(abs(rky-ident))#
+dpnc2 = sum(abs(n+1-rky2-ident))#
+dppc2 = sum(abs(rky2-ident))#
+den = n^2%/%2#
+Gcor = ((dpnc+dpnc2)-(dppc+dppc2))/(den*2)#
+Gcor}#
+# FOURTH Absolute Value CC, the continuous version of Gini#
+abscor = function(x, y) {#
+ym = mean(y); xm = mean(x)#
+SAx = sum(abs(x-xm)); SAy = sum(abs(y-ym))#
+dpnc = sum(abs((x-xm)/SAx+(y-ym)/SAy))#
+dppc = sum(abs((x-xm)/SAx-(y-ym)/SAy))#
+rav = (dpnc-dppc)/2#
+rav}#
+# FIFTH MAD CC#
+MADcor = function(x, y) {xm = median(x)#
+ym = median(y)#
+madx = median(abs(x-xm))#
+mady = median(abs(y-ym))#
+dpnc = median(abs((x-xm)/madx+(y-ym)/mady))#
+dppc = median(abs((x-xm)/madx-(y-ym)/mady))#
+rmad = (dpnc-dppc)/2#
+rmad}#
+# the population inverses for elliptical contoured populations#
+GinI = function(y) {tan(pi*y/4)*sqrt(1+2*cos(pi*y/2))} # Gini inv#
+GDI = function(y) sin(pi*y/2) # GD or Kendall inverse#
+MADI = function(y) y*sqrt(2-y#
+^2) # MAD or AV (abs) CC inverse#
+# setting up functions for CES regression#
+GDslp = function(b, x, y) {GDave(x, y-b*x)}#
+GDslp2 = uniroot(GDslp, c(-10, 10), x = x, y = y)$root#
+Ginslp = function(b, x, y) {Gini(x, y-b*x)}#
+Ginslp2 = uniroot(Ginslp, c(-2, +2), x = x, y = y)$root#
+Kenslp = function(b, x, y) {KENtau(x, y-b*x)}#
+Kenslp2 = uniroot(Kenslp, c(-2, +2), x = x, y = y)$root#
+abcslp = function(b, x, y) {abscor(x, y-b*x)}#
+abcslp2 = uniroot(abcslp, c(-2, +2), x = x, y = y)$root#
+madslp = function(b, x, y) {MADcor(x, y-b*x)}#
+bslp = uniroot(madslp, c(-5, 7.0), x = x, y = y)$root#
+#
+##### A2#
+f = KENtau#
+# in curly brackets choose one of the CCs from A.1 on data (x, y)#
+fslp = function(b, x, y) f(x, y-b*x) # solve for b in this function#
+l <- -100#
+u <- 100#
+slp = uniroot(fslp, c(l, u), x = x1, y = y1)$root # the slope of the regression#
+int = median(y1-slp*x1) # the intercept of the regression#
+#
+##### A3#
+# The estimate of (1) σres/σy and (2) σres/σx as entities.#
+res = y1-(int+slp*x1); y1s = sort(y1) # or yls = sort(x1)#
+# Only case (1) is shown in the next line.#
+s = uniroot(fslp, c(l, u), x = y1s, y = sort(res))$root#
+#
+##### A4#
+ftest = function(b, x, y) {y3 = sort(y-b*x)#
+s = uniroot(fslp, c(-1, 2), x = sort(y), y = y3)$root#
+return(s)}#
+out1 = optimize(ftest, c(0, 1), x = x1, y = y1)#
+#
+##### A5#
+# define a function g of the regression coefficients to be used with R-routine nlm.#
+g = function(b) {#
+s = uniroot(fslp, c(l, u), x = sort(y1), y = sort(y1-XM%*%b))$root#
+return(s)}#
+# Note: b was 6 dimensional in the simulations and 2 and 6 in the C/P analysis#
+# The output for the multiple regression is obtained by#
+out = nlm(g, initialb)#
+int = median(y1-XM%*%b)#
+#
+# can use least squares method to compute an initial b value#
+while (de>0.005 & ct<250 & ctcor>0.01) {bp = b#
+for(i in 1:k) {XMS = XM[, -i]#
+bs = b[-i]#
+ys = y1-XMS%*%bs#
+b[i] = uniroot(fslp, c(bl[i], bu[i]), x = XM[, i], y = ys)$root#
+}#
+de = sum(abs(bp-b)) # the total change in the coefficients#
+ct = ct+1 # a counter that is initially zero#
+yres = y1-XM%*%b # the updated resdiduals#
+for(i in 1:k) bcor[i] = f(XM[, i], yres)#
+ctcor = sum(abs(bcor))}#
+int = median(y1-XM%*%b) # the intercept of the fit#
+yhat = int+XM%*%b # the predicted values of the model#
+#
+# A6#
+ysort = sort(y)#
+g2 = function(b) {#
+s = uniroot(fslp, c(0, 1), x = ysort, y = sort(y-b[1]*exp(-b[2]*x)))$root#
+return(s)}#
+out = nlm(g2, c(µ, η), steptol = 0.001)#
+# µ and η are the initial values of b[1] and b[2]#
+#
+#A7#
+ysort = sort(y)#
+g2 = function(b) {#
+s = uniroot(fslp, c(0, 1), x = ysort, y = sort(y-b[1]*exp(-b[2]*x)))$root#
+return(s)}#
+out = nlm(g2, c(µ, η), steptol = 0.001)
+sum(rpois(10, 4))
+sum(rpois(10, 10))
+sum(rpois(10, 15))
+install.packages("Rcpp")
+install.packages("agrocolae")
+install.packages("agricolae")
+install.packages("deldir")
+install.packages("agrocolae")
+install.packages("agricolae")
+library(agricolae)
+?scheffe.test
+library(arm)
+?stanl,
+?stanlm
+??stanlm
+??lmstan
+install.packages("rstanarm")
+library(gemmR)
+data(culture)
+mod <- gemm(murder.rate ~ pasture + gini + gnp, data = culture)
+ls()
+install.packages("Rcpp")
+install.packages("devtools")
+library(devtools)#
+install_github("jchrszcz/gemmR", subdir = "gemmR", ref = "dev")
+install.packages("knitr")
+??tcltk
+library(tcltk)
+install.packages("tcltk")
+library(Rcpp)
+library(gemmR)
+gemmEst
+library(gemmR)
+data(culture)
+?install_github
+library(devtools)
+install_github("jchrszcz/gemmR", subdir = "gemmR", ref = "cran")
+library(gemmR)
+data(culture)
+library(tcltk)
+install.packages("tcltk")
+library(gemmR)
+?gemmEst
+data(culture)
+mod <- gemm(murder.rate ~ pasture + gini + gnp, data = culture, n.chains = 3, n.gens = 3, n.beta = 200)
+mod <- gemm(murder.rate ~ pasture + gini + gnp, data = culture, n.chains = 3, n.gens = 10, n.beta = 200, check.convergence = TRUE)
+mod
+plot(mod)
+remove.packages("gemmR")
+install.packages("gemmR")
+library(gemmR)
+removes.packages("gemmR")
+remove.packages("gemmR")
+install.packages("gemmR")
+library(gemmR)
+library("gemmR")
+install.packages("gemmR")
+install.packages("R.matlab")
+install.packages("dplyr")
+install.packages("plyr")
+install.packages("reshape")
+install.packages("reshape2")
+install.packages("tidyr")
+install.packages("ggplot2")
+install.packages("MCMCglmm")
+install.packages("texreg")
+install.packages("xtable")
+install.packages("gdata")
+install.packages("caret")
+?Rcpp.package.skeleton
+install.packages("Rcpp")
+?Rcpp.package.skeleton
+library(Rcpp)
+?Rcpp.package.skeleton
+library(gemmR)
+?gemm
+setwd("/Users/jchrszcz/Dropbox/dissertation")
+library(R.matlab)#
+library(plyr)#
+library(dplyr)#
+library(ggplot2)#
+library(xtable)#
+library(lme4)#
+library(gdata)#
+library(texreg)#
+library(MCMCglmm)#
+library(gemmR)
+ponyParse <- function(x) {#
+  if (paste0(unlist(strsplit(x, split = ""))[1:3], collapse = "") == "sub") {#
+    pl <- readMat(paste0("/Users/jchrszcz/Dropbox/ponyExperiment/Matlab version/", x))#
+    idx <- paste(unlist(strsplit(x, ""))[5:7], collapse = "")#
+    re.order <- rep(0, times = 4)#
+    for (i in 1:4) {#
+      if (pl$cueOrder[1,i] == 1) {#
+        re.order[1] = i#
+      } else if (pl$cueOrder[1,i] == 2) {#
+        re.order[2] = i#
+      } else if (pl$cueOrder[1,i] == 3) {#
+        re.order[3] = i#
+      } else if (pl$cueOrder[1,i] == 4) {#
+        re.order[4] = i#
+      }#
+    }#
+    cue.choose <- pl$cueChoose#
+    cue.order <- pl$cueOrder#
+    cue.choose <- sapply(cue.choose, FUN = function(x) ifelse(x == cue.order[1], re.order[1], ifelse(x == cue.order[2], re.order[2], ifelse(x == cue.order[3], re.order[3], ifelse(x == cue.order[4], re.order[4], NA)))))#
+    left.cues <- pl$leftCues[,re.order]#
+    right.cues <- pl$rightCues[,re.order]#
+    left.weight <- pl$leftWeighted[,re.order]#
+    right.weight <- pl$rightWeighted[,re.order]#
+    out2 <- as.data.frame(cbind(left.cues, right.cues, left.weight, right.weight))#
+    names(out2) <- c("left.cue.1", "left.cue.2", "left.cue.3", "left.cue.4", "right.cue.1", "right.cue.2", "right.cue.3", "right.cue.4", "left.weight.1", "left.weight.2", "left.weight.3", "left.weight.4", "right.weight.1", "right.weight.2", "right.weight.3", "right,weight.4")#
+    out <- data.frame(idx = idx, corval = pl$corVal, cue.choose = cue.choose, acc = pl$accuracy, response = pl$response, rt = pl$rt, trial = 1:length(pl$response))#
+    out <- cbind(out, out2)#
+    return(out)#
+  }#
+}#
+#
+data.list <- dir("/Users/jchrszcz/Dropbox/ponyExperiment/Matlab version")#
+pony <- do.call("rbind", lapply(data.list, ponyParse))#
+#
+# online data#
+load("/Users/jchrszcz/Dropbox/ponyExperiment/drive110713.RData")#
+#
+exp2 <- inner_join(pony, online)#
+exp2$cueChoose <- factor(exp2$cue.choose)#
+exp2 <- plyr::rename(exp2, c("benefit.condition" = "benefit", "ecology.condition" = "ecology"))#
+levels(exp2$ecology) <- c("pony", "tau")#
+#
+study2.acc.mod <- glmer(acc ~ benefit + (1|idx), data = subset(exp2, trial >= 41 & acc != 2 & ecology == "pony"), family = binomial())
+sumary(study2.acc.mod)
+summary(study2.acc.mod)
+acc2.mod <- texreg(study2.acc.mod, caption = "Fixed and random effect estimates predicting accuracy with the two experimental manipulations and nesting intercepts within subject effects.", label = "tab:study2-acc-mod")
+acc2.mod
+save(acc2.mod, file = "/Users/jchrszcz/Dropbox/ponyExperiment/Code/acc_mod_CI2.RData")
+rm(list = ls())
+source('http://mc-stan.org/rstan/install.R', echo = TRUE, max.deparse.length = 2000)#
+install_rstan()
+library(ISwR)#
+library(arm)#
+data(juul)#
+juul$menarche <- factor(juul$menarche)#
+juul$tanner <- factor(juul$tanner)#
+juul.girl <- juul[juul$age > 8 & juul$age < 20 & complete.cases(juul$menarche),]
+sdat <- list(#
+  y = juul.girl$menarche - 1,#
+  x = juul.girl$age,#
+  N = nrow(juul.girl)#
+)#
+#
+smod <- "#
+  data {#
+    int<lower=1> N;#
+    int<lower=0> y[N];#
+    vector[N] x;#
+  }#
+  parameters {#
+    real alpha;#
+    real beta;#
+  }#
+  transformed parameters {#
+    vector[N] yhat;#
+    yhat <- alpha + x * beta;#
+  }#
+  model {#
+    alpha ~ normal(0,10);#
+    beta ~ normal(0,10);#
+    for (n in 1:N)#
+      y[n] ~ bernoulli_logit(yhat);#
+  }#
+"#
+#
+fit2 <- stan(model_code = smod, data = sdat, refresh = -1)
+sdat <- list(#
+  y = unclass(juul.girl$menarche) - 1,#
+  x = juul.girl$age,#
+  N = nrow(juul.girl)#
+)#
+#
+smod <- "#
+  data {#
+    int<lower=1> N;#
+    int<lower=0> y[N];#
+    vector[N] x;#
+  }#
+  parameters {#
+    real alpha;#
+    real beta;#
+  }#
+  transformed parameters {#
+    vector[N] yhat;#
+    yhat <- alpha + x * beta;#
+  }#
+  model {#
+    alpha ~ normal(0,10);#
+    beta ~ normal(0,10);#
+    for (n in 1:N)#
+      y[n] ~ bernoulli_logit(yhat);#
+  }#
+"#
+#
+fit2 <- stan(model_code = smod, data = sdat, refresh = -1)
+sdat <- list(#
+  y = unclass(juul.girl$menarche) - 1,#
+  x = juul.girl$age,#
+  N = nrow(juul.girl)#
+)#
+#
+smod <- "#
+  data {#
+    int<lower=1> N;#
+    int<lower=0> y[N];#
+    vector[N] x;#
+  }#
+  parameters {#
+    real alpha;#
+    real beta;#
+  }#
+  transformed parameters {#
+    vector[N] yhat;#
+    yhat <- alpha + x * beta;#
+  }#
+  model {#
+    alpha ~ normal(0,10);#
+    beta ~ normal(0,10);#
+    for (n in 1:N)#
+      y[n] ~ bernoulli_logit(yhat);#
+  }#
+"#
+#
+fit2 <- stan(model_code = smod, data = sdat)
+sdat <- list(#
+  y = unclass(juul.girl$menarche) - 1,#
+  x = juul.girl$age,#
+  N = nrow(juul.girl)#
+)#
+#
+smod <- "#
+  data {#
+    int<lower=1> N;#
+    int<lower=0> y[N];#
+    vector[N] x;#
+  }#
+  parameters {#
+    real alpha;#
+    real beta;#
+  }#
+  transformed parameters {#
+    vector[N] yhat;#
+    yhat <- alpha + x * beta;#
+  }#
+  model {#
+    alpha ~ normal(0,10);#
+    beta ~ normal(0,10);#
+    y ~ bernoulli_logit(yhat);#
+  }#
+"#
+#
+fit2 <- stan(model_code = smod, data = sdat)
+fit2
+?summary.stanfit
+summary(fit2, coefs = c("", ""), probs = c(.025, .975))$summary
+summary(fit2, coefs = c("alpha", "beta"), probs = c(.025, .975))$summary
+str(summary(fit2)$summary)
+summary(fit2, coef = c("alpha", "beta"))
+print(fit2, coef = c("alpha", "beta"))
+print(fit2, coefs = c("alpha", "beta"))
+summary(fit2)$summary
+?stan
+?print.stanfit
+print(fit2, pars = c("alpha", "beta"))
+fit2
+print(fit2, pars = c("alpha", "beta", "lp__"))
+setwd("~/Dropbox/psyc_489j_2015")
+setwd("~/Dropbox/psyc489j_2015/slides/data")
+dir)
+dir()
+dat <- read.csv("ravensdata.csv")
+summary(dat)
+dim(dat)
+sel <- sample(1:ndrow(dat), 25)
+sel <- sample(1:nrow(dat), 25)
+sel
+cross <- dat[sel,]
+est <- dat[-sel,]
+dim(cross)
+dim(est)
+?write.csv
+write.csv(est, file = "ravensdata.csv", row.names = FALSE)
+write.csv(cross, file = "rnrsedata.csv", row.names = FALSE)
+dat <- data.frame(experiment = rnorm(100), control = rnorm(100, mu = 1))
+dat <- data.frame(experiment = rnorm(100), control = rnorm(100, mean = 1))
+write.csv(dat, file = "lab02data.csv", row.names = FALSE)
+data(malaria)
+summary(malaria)
+??mclapply

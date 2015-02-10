@@ -1,0 +1,25 @@
+Lab 09
+=====
+
+You are supervising a group of 4 people.
+You know that you will see their IQ scores in their employee file and decide that you could have a stupid group, a moderate group, or a smart group. We assume that the variance, $\sigma^2$, will be 100.
+These are represented by three different hypotheses:
+
+* $\mu$ = 90 (stupid)
+* $\mu$ = 100 (moderate)
+* $\mu$ = 110 (smart)
+
+1. Assign prior probabilities to each of these hypotheses/parameter values.
+2. You then see the scores: 75, 112, 100, 99. Calculate a likelihood for each hypothesis.
+3. Use Bayes' rule to determine the posterior probability of each hypothesis.
+
+```{r}
+priors <- c(.5, .25, .25)
+means <- c(90, 100, 110)
+obs <- c(75, 112, 100, 99)
+gsd <- 10
+lik <- sapply(means, function(x) exp(sum(log(dnorm(obs, mean = x, sd = gsd)))))
+posts <- lik * priors/sum(lik)
+lik
+posts
+```

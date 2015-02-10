@@ -1,0 +1,16 @@
+Lab 4
+=====
+
+1. Load the sleep dataset
+2. Model extra as a function of group.
+3. Interpret the model. Make specific reference to the meaning of the parameters and how they relate to differences between the groups.
+4. Plot this model in at least two ways.
+
+```{r,warning=FALSE,message=FALSE}
+invisible(lapply(c("arm", "ISwR", "ggplot2"), require, character.only = TRUE))
+data(sleep)
+fit1 <- lm(extra ~ group, data = sleep)
+display(fit1)
+qplot(group, extra, data = sleep, geom = "boxplot")
+qplot(group, extra, data = sleep, geom = "jitter", position = position_jitter(.25))
+```
